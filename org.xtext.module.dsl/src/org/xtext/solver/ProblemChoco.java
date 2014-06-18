@@ -96,6 +96,11 @@ public class ProblemChoco {
 	public Object makeIntVar(String name, int min, int max) {
 		return Choco.makeIntVar(name, min, max);
 	}
+	
+	//constant variables
+	public Object makeIntConst(int value) {
+		return Choco.constant(value);
+	}
 
 	public Object makeRealVar(String name, double min, double max) {	throw new RuntimeException("## Unsupported make real "); }
 	

@@ -36,22 +36,19 @@ class MCDC_Statement {
 			return null
 		}
 		else{//statement is of type 'TmpVar_DECL' and 'bool'
+			
+			val List<String> varInExpression = new ArrayList<String>
 			val booleanExpression = (statement as TmpVAR_DECL).value
-			if(booleanExpression instanceof boolConstant){
-				return null
-			}
-			else{
-				val List<String> varInExpression = new ArrayList<String>
-				varInExpression.add((statement as TmpVAR_DECL).name)
-				varInExpression(booleanExpression, varInExpression)
-				
-				val mcdcValues = mcdcOfCond.mcdcOfBooleanExpression(booleanExpression).reduceList
-				identifier = identifier + 1
-				listOfBooleanExpression.add(identifier, booleanExpression)
-				listOfMcdcValues.add(identifier, mcdcValues)
-				
-				return new Triplet(varInExpression, mcdcValues, identifier.toString)
-			}
+			
+			varInExpression.add((statement as TmpVAR_DECL).name)
+			varInExpression(booleanExpression, varInExpression)
+			
+			val mcdcValues = mcdcOfCond.mcdcOfBooleanExpression(booleanExpression).reduceList
+			identifier = identifier + 1
+			listOfBooleanExpression.add(identifier, booleanExpression)
+			listOfMcdcValues.add(identifier, mcdcValues)
+			
+			return new Triplet(varInExpression, mcdcValues, identifier.toString)
 		}
 	}
 	
@@ -103,9 +100,9 @@ class MCDC_Statement {
 		mcdcOfConditional(statement.ifst, listT, result)
 		mcdcOfConditional(statement.elst, listF, result)
 		
-		//result
+		return result
 		//result.shrinkList
-		val result2 = result.copyListOfList
+		/*val result2 = result.copyListOfList
 		result2.assignVariableIdentifier
 		
 		for(r: result2){
@@ -170,7 +167,7 @@ class MCDC_Statement {
 		System.out.println("####### Solving... #######")
 		for(equations: listOfEquations){
 			translateAndSolveEquationsWithChoco(equations)
-		}
+		}*/
 		
 		}//mcdcIfStatement
 		
@@ -235,7 +232,7 @@ class MCDC_Statement {
 		}
 	}//mcdcOfConditional
 	
-	def private concatMcdcValues(List<List<Triplet<List<String>,List<String>,String>>> listOfList) {
+	def concatMcdcValues(List<List<Triplet<List<String>,List<String>,String>>> listOfList) {
 		
 		val resultOfConcat = new ArrayList<Triplet<List<String>, List<String>, String>>
 		
@@ -400,7 +397,7 @@ class MCDC_Statement {
 		return true
 	}//meetConstraints
 	
-	def private splitConcatenatedValues(List<Triplet<List<String>, List<String>, String>> concatValues){
+	def splitConcatenatedValues(List<Triplet<List<String>, List<String>, String>> concatValues){
 		
 		val splitConcatenatedResults = new ArrayList<Triplet<List<String>, Set<String>, String>>
 		
@@ -454,7 +451,7 @@ class MCDC_Statement {
 		return splitConcatenatedResults
 	}//splitConcatenatedValues
 	
-	def private notCoveredValues(List<Triplet<List<String>, Set<String>, String>> splitList){
+	def notCoveredValues(List<Triplet<List<String>, Set<String>, String>> splitList){
 		val notCoveredList = new ArrayList<Triplet<List<String>, List<String>, String>>
 		
 		for(triplet:splitList){
@@ -471,7 +468,7 @@ class MCDC_Statement {
 		return notCoveredList
 	}//notCoveredList
 	
-	def private buildEquations( List<Triplet<List<String>,List<String>,String>> notCoveredList, 
+	def buildEquations( List<Triplet<List<String>,List<String>,String>> notCoveredList, 
 					  List<List<Triplet<List<String>,List<String>,String>>> listOfList){
 		
 		val listOfEquations =  new ArrayList<List<Triplet<List<String>,List<String>,String>>>
@@ -551,10 +548,9 @@ class MCDC_Statement {
 			val variables = equations.first //variables in the triplet
 			val values = equations.second //corresponding values of the variables 
 			val ident =  equations.third //boolean expression identifier 
-			
 			//create variables with choco
 			var cpt = 0
-			val size = variables.size
+			val size = variables.size //variable list size
 			do{
 				
 				var currentVar = variables.get(cpt) //variable to be declared as choco integer variable
@@ -605,13 +601,19 @@ class MCDC_Statement {
 			
 			//create constraints with choco
 		 	if(equationResult == "*" || equationResult == "T"){
-				//The constraints must be >= chocoExpression and <= 1*(Nb of variables involved in expression except the first one) 
-				val constraint1 = chocoModel.geq(chocoExpression , chocoResultVariable)
-				val constraint2 = chocoModel.leq(chocoExpression , size-1) //
+				
+				if (size == 1){
+					val constraint = chocoModel.eq(chocoExpression , 1) //
+					chocoModel.addConstraint(constraint)//Add constraints 2
+				}
+				else{
+					//The constraints must be >= chocoExpression and <= 1*(Nb of variables involved in expression except the first one) 
+					val constraint1 = chocoModel.geq(chocoExpression , chocoResultVariable)
+					val constraint2 = chocoModel.leq(chocoExpression , size-1) //
+					chocoModel.addConstraint(constraint1)//Add constraint 1
+					chocoModel.addConstraint(constraint2) ////Add constraints 2
+				}
 			
-				//Add constraints
-				chocoModel.addConstraint(constraint1)
-				chocoModel.addConstraint(constraint2)
 			}//if
 			else{
 				if(equationResult == "F"){

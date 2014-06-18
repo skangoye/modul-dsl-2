@@ -8,6 +8,7 @@ import org.eclipse.xtext.generator.IGenerator
 import org.eclipse.xtext.generator.IFileSystemAccess
 import org.xtext.moduleDsl.BODY
 import org.xtext.moduleDsl.IF_STATEMENT
+import org.xtext.moduleDsl.MODULE_DECL
 
 /**
  * Generates code from your model files on save.
@@ -17,14 +18,14 @@ import org.xtext.moduleDsl.IF_STATEMENT
 class ModuleDslGenerator implements IGenerator {
 	
 	override void doGenerate(Resource resource, IFileSystemAccess fsa) {
-		for(e: resource.allContents.toIterable.filter(typeof(BODY))){
+		for(e: resource.allContents.toIterable.filter(typeof(MODULE_DECL))){
 			fsa.generateFile( "test.txt", e.compile)
 		}
 	}//doGenerate
 	
-	def compile (BODY body){
-		val stmt = body.statements.findFirst[it instanceof IF_STATEMENT]
-		compile(stmt as IF_STATEMENT)
+	def compile (MODULE_DECL module){
+		val mcdc = new MCDC_Module()
+		mcdc.enumerateAllModulePaths(module)
 		return ""
 	}
 	

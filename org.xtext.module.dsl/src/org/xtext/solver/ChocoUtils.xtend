@@ -11,6 +11,7 @@ import org.xtext.moduleDsl.EXPRESSION
 
 import static extension org.xtext.generator.MCDC_GeneratorUtils.*
 import choco.kernel.model.variables.integer.IntegerVariable
+import org.xtext.moduleDsl.boolConstant
 
 class ChocoUtils {
 	
@@ -25,10 +26,23 @@ class ChocoUtils {
  			COMPARISON:getIntegerVar(list, relBoolRepr(exp.left) + exp.op + relBoolRepr(exp.right))
  			EQUAL_DIFF: getIntegerVar(list, relBoolRepr(exp.left) + exp.op + relBoolRepr(exp.right))
  			VarExpRef: getIntegerVar(list, exp.vref.name)
+ 			boolConstant:getBooleanConstantVar(exp, pb)
  			//default:
  		}
 	 }
 
+	/**
+	 * 
+	 */
+	 def static Object getBooleanConstantVar(boolConstant exp, ProblemChoco pb){
+	 	val boolValue = exp.value
+	 	if(boolValue){
+	 		return pb.makeIntConst(1)
+	 	}
+	 	else{
+	 		return pb.makeIntConst(0)
+	 	}
+	 }
 	
 	/**
 	 * 

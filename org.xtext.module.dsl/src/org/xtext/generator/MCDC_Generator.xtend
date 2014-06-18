@@ -14,6 +14,7 @@ import org.xtext.moduleDsl.EQUAL_DIFF
 import org.xtext.moduleDsl.COMPARISON
 import org.xtext.moduleDsl.VarExpRef
 import static extension org.xtext.generator.MCDC_GeneratorUtils.*
+import org.xtext.moduleDsl.boolConstant
 
 class MCDC_Generator {
 	
@@ -115,7 +116,22 @@ class MCDC_Generator {
 						resultList.add(list)
 					}
 					else{
-						throw new Exception("Illegal boolean expression")
+						if(expression instanceof boolConstant){
+							
+							var list = new ArrayList< Couple< Couple<String, String>, Couple<String, String> > >
+							val expressionValue = (expression as boolConstant).value
+							
+							if (expressionValue){
+								list.add(new Couple(new Couple("T",""), new Couple("","")))
+							}
+							else{
+								list.add(new Couple(new Couple("F",""), new Couple("","")))
+							}
+							resultList.add(list)
+						}
+						else{
+							throw new Exception("Illegal boolean expression")
+						}
 					}
 				}
 			}
