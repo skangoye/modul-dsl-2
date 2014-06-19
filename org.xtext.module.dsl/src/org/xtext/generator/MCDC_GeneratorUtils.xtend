@@ -224,16 +224,16 @@ class MCDC_GeneratorUtils {
 	/**
 	 * 
 	 */
-	def static copyListOfList(List<List<Triplet <List<String>, List<String>, String>>> listOfList){
+	def static copyListOfList(List<List<Triplet <List<String>, List<String>, List<String> >>> listOfList){
 		
-		val copyListOfList = new ArrayList<List<Triplet <List<String>, List<String>, String>>> 
+		val copyListOfList = new ArrayList<List<Triplet <List<String>, List<String>, List<String>>>> 
 		
 		for(list: listOfList){
 			
-			val copyList = new ArrayList<Triplet <List<String>, List<String>, String>>
+			val copyList = new ArrayList<Triplet <List<String>, List<String>, List<String>>>
 			
 			for(triplet: list){		
-				copyList.add(new Triplet(triplet.first.copyList, triplet.second.copyList, triplet.third)) 
+				copyList.add(new Triplet(triplet.first.copyList, triplet.second.copyList, triplet.third.copyList)) 
 			}//for
 			
 			copyListOfList.add(copyList)
@@ -244,12 +244,12 @@ class MCDC_GeneratorUtils {
 	/**
 	 * 
 	 */
-	 def static copyListOfTriplet(List<Triplet <List<String>, List<String>, String>> listOfTriplet){
+	 def static copyListOfTriplet(List<Triplet <List<String>, List<String>, List<String>>> listOfTriplet){
 	 	
-	 	val copyList = new ArrayList<Triplet <List<String>, List<String>, String>>
+	 	val copyList = new ArrayList<Triplet <List<String>, List<String>, List<String>>>
 			
 			for(triplet: listOfTriplet){		
-				copyList.add(new Triplet(triplet.first.copyList, triplet.second.copyList, triplet.third)) 
+				copyList.add(new Triplet(triplet.first.copyList, triplet.second.copyList, triplet.third.copyList)) 
 			}//for
 			
 			return copyList
@@ -258,7 +258,7 @@ class MCDC_GeneratorUtils {
 	/**
 	 * 
 	 */
-	def static shrinkList(List<List<Triplet <List<String>, List<String>, String>>> listOfList){
+	def static shrinkList(List<List<Triplet <List<String>, List<String>, String>>> listOfList){ ////////////////////////a revoir
 		
 		var i = 0
 		var size = listOfList.size
@@ -315,6 +315,19 @@ class MCDC_GeneratorUtils {
 	/**
 	 * 
 	 */
+	def static extractIdentifier(List<String> ident) {
+		
+		if(ident.size != 1){
+			throw new Exception("Incorrect number of identifiers")
+		}
+		else{
+			return ident.get(0).deleteLastChar
+		}
+	}
+	
+	/**
+	 * 
+	 */
 	def private static setValues(List<String> list, String value, String setValue){
 		
 		var size = list.size
@@ -332,7 +345,7 @@ class MCDC_GeneratorUtils {
 	/**
 	 * 
 	 */
-	def static assignVariableIdentifier(List<List<Triplet <List<String>, List<String>, String>>> listOfList){
+	def static assignVariableIdentifier(List<List<Triplet <List<String>, List<String>, List<String> >>> listOfList){
 		for(list: listOfList){
 			
 			var listOfAssignVariables = new ArrayList<String>
@@ -513,7 +526,7 @@ class MCDC_GeneratorUtils {
 	/**
 	 * Checks whether at least 2 list of variables involved in the list of triplet have some variables in common
 	 */
-	def static boolean noVarInCommon(List<Triplet<List<String>,List<String>,String>> list){
+	def static boolean noVarInCommon(List<Triplet<List<String>,List<String>, List<String> >> list){
 		var cumulList = new ArrayList<String>
 		for(e:list){
 			val varList = e.first

@@ -1,25 +1,24 @@
 package org.xtext.generator
 
+import choco.kernel.model.variables.integer.IntegerVariable
 import java.util.ArrayList
 import java.util.List
 import java.util.Set
 import java.util.TreeSet
 import org.xtext.helper.Couple
-import static extension org.xtext.generator.MCDC_GeneratorUtils.*
-import org.xtext.moduleDsl.ERROR_STATEMENT
-import org.xtext.moduleDsl.EXPRESSION
-import org.xtext.moduleDsl.AbstractVAR_DECL
-import org.xtext.moduleDsl.TmpVAR_DECL
-import org.xtext.moduleDsl.boolConstant
 import org.xtext.helper.Triplet
 import org.xtext.moduleDsl.ASSIGN_STATEMENT
+import org.xtext.moduleDsl.AbstractVAR_DECL
+import org.xtext.moduleDsl.ERROR_STATEMENT
+import org.xtext.moduleDsl.EXPRESSION
 import org.xtext.moduleDsl.IF_STATEMENT
 import org.xtext.moduleDsl.STATEMENT
-
+import org.xtext.moduleDsl.TmpVAR_DECL
 import org.xtext.solver.ProblemChoco
 
-import static org.xtext.solver.ChocoUtils.*
-import choco.kernel.model.variables.integer.IntegerVariable
+import static extension org.xtext.solver.ChocoUtils.*
+
+import static extension org.xtext.generator.MCDC_GeneratorUtils.*
 
 class MCDC_Statement {
 	var identifier = -1
@@ -37,18 +36,22 @@ class MCDC_Statement {
 		}
 		else{//statement is of type 'TmpVar_DECL' and 'bool'
 			
-			val List<String> varInExpression = new ArrayList<String>
 			val booleanExpression = (statement as TmpVAR_DECL).value
 			
+			val List<String> varInExpression = new ArrayList<String>			
 			varInExpression.add((statement as TmpVAR_DECL).name)
 			varInExpression(booleanExpression, varInExpression)
 			
 			val mcdcValues = mcdcOfCond.mcdcOfBooleanExpression(booleanExpression).reduceList
+			
 			identifier = identifier + 1
 			listOfBooleanExpression.add(identifier, booleanExpression)
 			listOfMcdcValues.add(identifier, mcdcValues)
 			
-			return new Triplet(varInExpression, mcdcValues, identifier.toString)
+			val List<String> subIdentifier = new ArrayList<String>
+			subIdentifier.add(identifier + "X")
+			
+			return new Triplet(varInExpression, mcdcValues, subIdentifier)
 		}
 	}
 	
@@ -62,20 +65,25 @@ class MCDC_Statement {
 		}
 		else{
 			val List<String> varInExpression = new ArrayList<String>
-				varInExpression.add(variable.name)
-				varInExpression(booleanExpression, varInExpression)
-				
-				val mcdcValues = mcdcOfCond.mcdcOfBooleanExpression(booleanExpression).reduceList
-				identifier = identifier + 1
-				listOfBooleanExpression.add(identifier, booleanExpression)
-				listOfMcdcValues.add(identifier, mcdcValues)
-				
-				return new Triplet(varInExpression, mcdcValues, identifier.toString)
+			varInExpression.add(variable.name)
+			varInExpression(booleanExpression, varInExpression)
+			
+			val mcdcValues = mcdcOfCond.mcdcOfBooleanExpression(booleanExpression).reduceList
+			
+			identifier = identifier + 1
+			listOfBooleanExpression.add(identifier, booleanExpression)
+			listOfMcdcValues.add(identifier, mcdcValues)
+			
+			val List<String> subIdentifier = new ArrayList<String>
+			subIdentifier.add(identifier + "X")
+			
+			return new Triplet(varInExpression, mcdcValues, subIdentifier)
 		}
 	}
 	
 	def mcdcIfStatement(IF_STATEMENT statement){
 		val ifBooleanExpression = (statement as IF_STATEMENT).ifCond
+		
 		val mcdcValues = mcdcOfCond.mcdcOfBooleanExpression(ifBooleanExpression)
 		
 		identifier = identifier + 1
@@ -89,13 +97,18 @@ class MCDC_Statement {
 		val mcdcTrueValues =  (mcdcValues.filter[ it.second == "T"].toList).reduceList
 		val mcdcFalseValues = (mcdcValues.filter[ it.second == "F"].toList).reduceList
 		
-		val listT = new ArrayList< Triplet < List<String>, List<String>, String > >
-	 	val listF = new ArrayList< Triplet< List<String>, List<String>, String > >
-	 	
-		listT.add(new Triplet(varInExpression, mcdcTrueValues, identifier.toString)) 
-		listF.add(new Triplet(varInExpression, mcdcFalseValues, identifier.toString)) 
+		val List<String> subIdentifierT = new ArrayList<String>
+		subIdentifierT.add(identifier + "T")
+		val List<String> subIdentifierF = new ArrayList<String>
+		subIdentifierF.add(identifier + "F")
+
 		
-		val result = new ArrayList<List<Triplet< List<String>, List<String>, String >>>
+		val listT = new ArrayList< Triplet < List<String>, List<String>, List<String> > >
+	 	val listF = new ArrayList< Triplet< List<String>, List<String>, List<String> > >
+		listT.add(new Triplet(varInExpression, mcdcTrueValues, subIdentifierT)) 
+		listF.add(new Triplet(varInExpression, mcdcFalseValues, subIdentifierF)) 
+		
+		val result = new ArrayList<List<Triplet< List<String>, List<String>, List<String> >>>
 		
 		mcdcOfConditional(statement.ifst, listT, result)
 		mcdcOfConditional(statement.elst, listF, result)
@@ -172,8 +185,8 @@ class MCDC_Statement {
 		}//mcdcIfStatement
 		
 		
-	def private void mcdcOfConditional(List<STATEMENT> statements, ArrayList<Triplet<List<String>,List<String>,String>> triplets,
-		List<List<Triplet <List<String>, List<String>, String>>> result) {
+	def private void mcdcOfConditional(List<STATEMENT> statements, ArrayList<Triplet<List<String>,List<String>, List<String> >> triplets,
+		List<List<Triplet <List<String>, List<String>, List<String> >>> result) {
 		
 		//Copy all the elements of the list "triplets" in listT and ListF
 		val list = triplets.copyListOfTriplet
@@ -199,6 +212,7 @@ class MCDC_Statement {
 						count = count + 1
 						
 						val ifBooleanExpression = (st as IF_STATEMENT).ifCond
+						
 						val mcdcValues = mcdcOfCond.mcdcOfBooleanExpression(ifBooleanExpression)
 		
 						identifier = identifier + 1
@@ -211,14 +225,19 @@ class MCDC_Statement {
 						
 						val mcdcTrueValues = (mcdcValues.filter[ it.second == "T"].toList).reduceList
 						val mcdcFalseValues = (mcdcValues.filter[ it.second == "F"].toList).reduceList
-		
-						val listT = new ArrayList< Triplet < List<String>, List<String>, String > >
+						
+						val List<String> subIdentifierT = new ArrayList<String>
+						subIdentifierT.add(identifier + "T")
+						val List<String> subIdentifierF = new ArrayList<String>
+						subIdentifierF.add(identifier + "F")
+
+						
+						val listT = new ArrayList< Triplet < List<String>, List<String>, List<String> > >
 						listT.addAll(list)
-	 					val listF = new ArrayList< Triplet< List<String>, List<String>, String > >
+	 					val listF = new ArrayList< Triplet< List<String>, List<String>, List<String> > >
 	 					listF.addAll(list)
-	 					
-	 					listT.add(new Triplet(varInExpression, mcdcTrueValues, identifier.toString))
-	 					listF.add(new Triplet(varInExpression, mcdcFalseValues, identifier.toString)) 
+	 					listT.add(new Triplet(varInExpression, mcdcTrueValues, subIdentifierT))
+	 					listF.add(new Triplet(varInExpression, mcdcFalseValues, subIdentifierF)) 
 	 					
 	 					mcdcOfConditional((st as IF_STATEMENT).ifst, listT, result)
 						mcdcOfConditional((st as IF_STATEMENT).elst, listF, result)
@@ -232,9 +251,9 @@ class MCDC_Statement {
 		}
 	}//mcdcOfConditional
 	
-	def concatMcdcValues(List<List<Triplet<List<String>,List<String>,String>>> listOfList) {
+	def concatMcdcValues(List<List<Triplet< List<String>, List<String>, List<String> >>> listOfList) {
 		
-		val resultOfConcat = new ArrayList<Triplet<List<String>, List<String>, String>>
+		val resultOfConcat = new ArrayList<Triplet<List<String>, List<String>, List<String> >>
 		
 		for(currentList: listOfList){
 			val size = currentList.size
@@ -285,15 +304,19 @@ class MCDC_Statement {
 	}//concatMcdcValues
 	
 	
-	def private concatWithoutConstraints(Triplet<List<String>,List<String>,String> t1,Triplet<List<String>,List<String>,String> t2) {
+	def private concatWithoutConstraints(Triplet<List<String>,List<String>, List<String> > t1,Triplet<List<String>,List<String>, List<String> > t2) {
 		
 		val List<String> concatValues = new ArrayList<String> //will hold the concatenation result of the 'list1' and 'list2'
 		val List<String> concatVariables = new ArrayList<String> //will hold the concatenation result of the list of Variables in t1 and t2 
-		val concatIdents = t1.third + "#" + t2.third //concatenation of the idents in t1 and t2
+		val List<String> concatIdents = new ArrayList<String> //will hold the concatenation of the t1 and t2 identifiers
 		
 		concatVariables.addAll(t1.first)
-		concatVariables.addAll("#")
+		concatVariables.add("#")
 		concatVariables.addAll(t2.first)
+		
+		concatIdents.addAll(t1.third)
+		concatIdents.add("#")
+		concatIdents.addAll(t2.third)
 		
 		val list1 = t1.second //list of MCDC values in t1
 		val list2 = t2.second //list of MCDC values in t2
@@ -350,7 +373,7 @@ class MCDC_Statement {
 		return new Triplet (concatVariables, concatValues, concatIdents)
 	}//concatWithoutConstraints
 	
-	def private concatWithConstraints(Triplet<List<String>,List<String>,String> t1,Triplet<List<String>,List<String>,String> t2){
+	def private concatWithConstraints(Triplet<List<String>,List<String>, List<String>> t1,Triplet<List<String>, List<String>, List<String>> t2){
 		
 		val List<String> concatValues = new ArrayList<String> //will hold the concatenation result of the 'listOfvariables1' and 'listOfvariables2'
 		
@@ -362,18 +385,21 @@ class MCDC_Statement {
 		concatVariables.add("#")
 		concatVariables.addAll(listOfvariables2)
 		
-		val listOfValues1 = t1.second
-		val listOfValues2 = t2.second
-		
-		val concatIdents = t1.third + "#" + t2.third //concatenation of the idents in t1 and t2
-		
-		val indexes = indexOfCommonVars(listOfvariables1, listOfvariables2)
+		val List<String> concatIdents = new ArrayList<String>
+		concatIdents.addAll(t1.third)
+		concatIdents.add("#")
+		concatIdents.addAll(t2.third)
 		
 		/*System.out.println("common indexes of: " + listOfvariables1.toString + " and " + listOfvariables2.toString)
 		for(i:indexes){
 			System.out.println("(" + i.first + "," + i.second + ")")
 		}*/
 		
+		val indexes = indexOfCommonVars(listOfvariables1, listOfvariables2)
+		
+		val listOfValues1 = t1.second
+		val listOfValues2 = t2.second
+	
 		for(v1:listOfValues1){
 			for(v2:listOfValues2){
 				if (meetConstraints(v1, v2, indexes)){
@@ -397,9 +423,9 @@ class MCDC_Statement {
 		return true
 	}//meetConstraints
 	
-	def splitConcatenatedValues(List<Triplet<List<String>, List<String>, String>> concatValues){
+	def splitConcatenatedValues(List<Triplet<List<String>, List<String>, List<String> >> concatValues){
 		
-		val splitConcatenatedResults = new ArrayList<Triplet<List<String>, Set<String>, String>>
+		val splitConcatenatedResults = new ArrayList<Triplet<List<String>, Set<String>, List<String> >>
 		
 		for(triplet: concatValues){
 			
@@ -410,7 +436,7 @@ class MCDC_Statement {
 			//indexes delimited by the separator '#'
 			//The indexes of variables can be used to split the values
 			val indexOfvariables = variables.indexesBeforeSeparator
-			val indexOfIdents = (identSequence.toStringArray).indexesBeforeSeparator
+			val indexOfIdents = (identSequence).indexesBeforeSeparator
 			
 			var i = 0
 			val size = indexOfvariables.size
@@ -423,9 +449,9 @@ class MCDC_Statement {
 				
 				//sub-list of variables
 				val varSubList = variables.subList(varLeftIndex, varRigthIndex + 1)
-				val ident = identSequence.substring(identLeftIndex, identRightIndex + 1)
+				val ident = identSequence.subList(identLeftIndex, identRightIndex + 1)
 				val Set<String> splitValues = new TreeSet<String>
-				values.forEach[v | splitValues.add(v.substring(varLeftIndex, varRigthIndex+1))]
+				values.forEach[v | splitValues.add(v.substring(varLeftIndex, varRigthIndex + 1))]
 				
 				splitConcatenatedResults.add(new Triplet(varSubList, splitValues, ident))
 				
@@ -438,7 +464,7 @@ class MCDC_Statement {
 		do{
 			val tmp = splitConcatenatedResults.get(j)
 			
-			val dup = splitConcatenatedResults.findFirst[ (it != tmp) && (it.third == tmp.third)]
+			val dup = splitConcatenatedResults.findFirst[(it != tmp) && (it.third == tmp.third)]
 			
 			if (dup != null){
 				tmp.second.addAll(dup.second)
@@ -451,13 +477,30 @@ class MCDC_Statement {
 		return splitConcatenatedResults
 	}//splitConcatenatedValues
 	
-	def notCoveredValues(List<Triplet<List<String>, Set<String>, String>> splitList){
-		val notCoveredList = new ArrayList<Triplet<List<String>, List<String>, String>>
+	def notCoveredValues(List<Triplet<List<String>, Set<String>, List<String> >> splitList){
+		val notCoveredList = new ArrayList<Triplet<List<String>, List<String>, List<String> >>
 		
 		for(triplet:splitList){
-			val identifier = triplet.third.parseInt
-			val mcdcValues = listOfMcdcValues.get(identifier)
+			
+			val subIdentifier = triplet.third
+			val identNature = subIdentifier.get(0).getLastChar //either 'T' or 'F' or 'X'
+			
+			val intIdent = subIdentifier.extractIdentifier.parseInt
 			val actualValues = triplet.second.toList
+			
+			val mcdcValues = new ArrayList<String>
+			
+			if( identNature == "F" || identNature == "T" ){
+				 mcdcValues.addAll(listOfMcdcValues.get(intIdent).filter[ it.charAt(0).toString ==  identNature])
+			}
+			else{
+				if(identNature == "X"){
+					 mcdcValues.addAll(listOfMcdcValues.get(intIdent))
+				}
+				else{
+					throw new Exception("Identifier error")
+				}
+			}
 			
 			//seek values that are in mcdcValues and not in values
 			val valuesDiff = listDiff(mcdcValues, actualValues)
@@ -468,18 +511,19 @@ class MCDC_Statement {
 		return notCoveredList
 	}//notCoveredList
 	
-	def buildEquations( List<Triplet<List<String>,List<String>,String>> notCoveredList, 
-					  List<List<Triplet<List<String>,List<String>,String>>> listOfList){
+	def buildEquations( List<Triplet< List<String>, List<String> , List<String> >> notCoveredList, 
+					  List<List<Triplet< List<String>, List<String>, List<String> >>> listOfList){
 		
-		val listOfEquations =  new ArrayList<List<Triplet<List<String>,List<String>,String>>>
+		val listOfEquations =  new ArrayList<List<Triplet<List<String>,List<String>, List<String>>>>
 		
 		for(triplet: notCoveredList){
 			
 			val listOfVariable = triplet.first
 			val listOfUncoveredValues = triplet.second
-			val ident = triplet.third
+			val subIdentifier = triplet.third
+			
 			for(uncoveredVal: listOfUncoveredValues){
-				listOfList.forEach[ list |  val match = list.findFirst[ (it.third == ident) && (it.first.equals(listOfVariable)) && (it.second.contains(uncoveredVal))]//find first
+				listOfList.forEach[ list |  val match = list.findFirst[ (it.third.equals(subIdentifier)) && (it.first.equals(listOfVariable)) && (it.second.contains(uncoveredVal))]//find first
 					if (match != null){
 						val targetIndex = list.indexOf(match)
 						val matchList = list.copyListOfTriplet
@@ -501,7 +545,7 @@ class MCDC_Statement {
 									//retrieve the outcome value of the condition
 									val outcome = currentTriplet.second.get(0).charAt(0)
 									//set all the values of the current
-									currentTriplet.setSecond( (outcome + (currentListOfVariables.size-1).unknownStringVector).toStringArray)
+									currentTriplet.setSecond((outcome + (currentListOfVariables.size-1).unknownStringVector).toStringArray)
 								}
 								else{
 									//set all the values of the current
@@ -535,19 +579,27 @@ class MCDC_Statement {
 	/**
 	 * 
 	 */
-	def translateAndSolveEquationsWithChoco(List<Triplet<List<String>,List<String>,String>> listOfEquations){
+	def translateAndSolveEquationsWithChoco(List<Triplet<List<String>, List<String>, List<String> >> listOfEquations){
 		
 		val chocoModel = new ProblemChoco() //choco model
 		val integerVarOveralList = new ArrayList< List<IntegerVariable>>
+		val listOfSubIdentifiers = new ArrayList<String> //
 		var starIdent= 1 //
 		
 		for(equations: listOfEquations){
+			
+			listOfSubIdentifiers.addAll(equations.third)//
+			
+			if(equations != listOfEquations.last){
+				listOfSubIdentifiers.add("#")//
+			}
 			
 			val integerVarList = new ArrayList<IntegerVariable> //array of listOfEquations' "IntegerVariables"
 			
 			val variables = equations.first //variables in the triplet
 			val values = equations.second //corresponding values of the variables 
-			val ident =  equations.third //boolean expression identifier 
+			val subIdentifier =  equations.third //boolean expression identifier 
+			
 			//create variables with choco
 			var cpt = 0
 			val size = variables.size //variable list size
@@ -593,7 +645,7 @@ class MCDC_Statement {
 			integerVarOveralList.add(integerVarList)
 			
 			//create expressions with choco
-			val condExpression = listOfBooleanExpression.get(ident.parseInt)
+			val condExpression = listOfBooleanExpression.get(subIdentifier.extractIdentifier.parseInt)
 			val chocoExpression = chocoIntegerExpression(condExpression, chocoModel, integerVarList)
 			
 			val equationResult = values.get(0) //the first element of the values' list is the result of the boolean expression
@@ -602,8 +654,10 @@ class MCDC_Statement {
 			//create constraints with choco
 		 	if(equationResult == "*" || equationResult == "T"){
 				
-				if (size == 1){
-					val constraint = chocoModel.eq(chocoExpression , 1) //
+				if (size == 1){ 
+					//Here the size of the variable list is 1. 
+					//That means that the variable is assigned with a boolean constant value ('true' or 'false')
+					val constraint = chocoModel.eq(chocoExpression , chocoResultVariable) //
 					chocoModel.addConstraint(constraint)//Add constraints 2
 				}
 				else{
@@ -631,6 +685,10 @@ class MCDC_Statement {
 		val solve = chocoModel.solve
 		
 		if(solve){
+			
+			System.out.println("Identifiers are: " + listOfSubIdentifiers.toString)
+			System.out.println
+			
 			for(list: integerVarOveralList){
 				for(intVar: list){
 					System.out.println( intVar.getName() + ": "+ chocoModel.getIntValue(intVar));

@@ -31,19 +31,19 @@ public class MCDC_Module {
   public void enumerateAllModulePaths(final MODULE_DECL module) {
     BODY _body = module.getBody();
     final EList<STATEMENT> allStatements = _body.getStatements();
-    ArrayList<List<Triplet<List<String>,List<String>,String>>> _arrayList = new ArrayList<List<Triplet<List<String>,List<String>,String>>>();
-    List<List<Triplet<List<String>,List<String>,String>>> result = _arrayList;
+    ArrayList<List<Triplet<List<String>,List<String>,List<String>>>> _arrayList = new ArrayList<List<Triplet<List<String>,List<String>,List<String>>>>();
+    List<List<Triplet<List<String>,List<String>,List<String>>>> result = _arrayList;
     for (final STATEMENT st : allStatements) {
       boolean _matched = false;
       if (!_matched) {
         if (st instanceof AbstractVAR_DECL) {
           final AbstractVAR_DECL _abstractVAR_DECL = (AbstractVAR_DECL)st;
           _matched=true;
-          final Triplet<List<String>,List<String>,String> triplet = this.mcdcStatement.mcdcVarStatement(_abstractVAR_DECL);
+          final Triplet<List<String>,List<String>,List<String>> triplet = this.mcdcStatement.mcdcVarStatement(_abstractVAR_DECL);
           boolean _notEquals = (!Objects.equal(triplet, null));
           if (_notEquals) {
-            List<List<Triplet<List<String>,List<String>,String>>> _tripletToListOfList = this.tripletToListOfList(triplet);
-            List<List<Triplet<List<String>,List<String>,String>>> _mergePaths = this.mergePaths(result, _tripletToListOfList);
+            List<List<Triplet<List<String>,List<String>,List<String>>>> _tripletToListOfList = this.tripletToListOfList(triplet);
+            List<List<Triplet<List<String>,List<String>,List<String>>>> _mergePaths = this.mergePaths(result, _tripletToListOfList);
             result = _mergePaths;
           }
         }
@@ -52,11 +52,11 @@ public class MCDC_Module {
         if (st instanceof ASSIGN_STATEMENT) {
           final ASSIGN_STATEMENT _aSSIGN_STATEMENT = (ASSIGN_STATEMENT)st;
           _matched=true;
-          final Triplet<List<String>,List<String>,String> triplet = this.mcdcStatement.mcdcAssignStatement(_aSSIGN_STATEMENT);
+          final Triplet<List<String>,List<String>,List<String>> triplet = this.mcdcStatement.mcdcAssignStatement(_aSSIGN_STATEMENT);
           boolean _notEquals = (!Objects.equal(triplet, null));
           if (_notEquals) {
-            List<List<Triplet<List<String>,List<String>,String>>> _tripletToListOfList = this.tripletToListOfList(triplet);
-            List<List<Triplet<List<String>,List<String>,String>>> _mergePaths = this.mergePaths(result, _tripletToListOfList);
+            List<List<Triplet<List<String>,List<String>,List<String>>>> _tripletToListOfList = this.tripletToListOfList(triplet);
+            List<List<Triplet<List<String>,List<String>,List<String>>>> _mergePaths = this.mergePaths(result, _tripletToListOfList);
             result = _mergePaths;
           }
         }
@@ -65,8 +65,8 @@ public class MCDC_Module {
         if (st instanceof IF_STATEMENT) {
           final IF_STATEMENT _iF_STATEMENT = (IF_STATEMENT)st;
           _matched=true;
-          ArrayList<List<Triplet<List<String>,List<String>,String>>> _mcdcIfStatement = this.mcdcStatement.mcdcIfStatement(_iF_STATEMENT);
-          List<List<Triplet<List<String>,List<String>,String>>> _mergePaths = this.mergePaths(result, _mcdcIfStatement);
+          ArrayList<List<Triplet<List<String>,List<String>,List<String>>>> _mcdcIfStatement = this.mcdcStatement.mcdcIfStatement(_iF_STATEMENT);
+          List<List<Triplet<List<String>,List<String>,List<String>>>> _mergePaths = this.mergePaths(result, _mcdcIfStatement);
           result = _mergePaths;
         }
       }
@@ -86,13 +86,13 @@ public class MCDC_Module {
     int _size = result.size();
     String _plus = ("Size is: " + Integer.valueOf(_size));
     System.out.println(_plus);
-    final ArrayList<List<Triplet<List<String>,List<String>,String>>> result2 = MCDC_GeneratorUtils.copyListOfList(result);
+    final ArrayList<List<Triplet<List<String>,List<String>,List<String>>>> result2 = MCDC_GeneratorUtils.copyListOfList(result);
     MCDC_GeneratorUtils.assignVariableIdentifier(result2);
     System.out.println("####### MODULES PATHS #######");
-    for (final List<Triplet<List<String>,List<String>,String>> r : result2) {
+    for (final List<Triplet<List<String>,List<String>,List<String>>> r : result2) {
       {
         System.out.println("{");
-        for (final Triplet<List<String>,List<String>,String> rr : r) {
+        for (final Triplet<List<String>,List<String>,List<String>> rr : r) {
           {
             List<String> _first = rr.getFirst();
             String _string = _first.toString();
@@ -102,8 +102,9 @@ public class MCDC_Module {
             String _string_1 = _second.toString();
             String _plus_2 = (_string_1 + " => ");
             System.out.print(_plus_2);
-            String _third = rr.getThird();
-            System.out.println(_third);
+            List<String> _third = rr.getThird();
+            String _string_2 = _third.toString();
+            System.out.println(_string_2);
           }
         }
         System.out.println("}");
@@ -112,8 +113,8 @@ public class MCDC_Module {
     }
     System.out.println();
     System.out.println("####### TEST SUITES #######");
-    final ArrayList<Triplet<List<String>,List<String>,String>> concatResult = this.mcdcStatement.concatMcdcValues(result2);
-    for (final Triplet<List<String>,List<String>,String> cr : concatResult) {
+    final ArrayList<Triplet<List<String>,List<String>,List<String>>> concatResult = this.mcdcStatement.concatMcdcValues(result2);
+    for (final Triplet<List<String>,List<String>,List<String>> cr : concatResult) {
       {
         List<String> _first = cr.getFirst();
         String _string = _first.toString();
@@ -123,15 +124,16 @@ public class MCDC_Module {
         String _string_1 = _second.toString();
         String _plus_2 = (_string_1 + " => ");
         System.out.print(_plus_2);
-        String _third = cr.getThird();
-        System.out.println(_third);
+        List<String> _third = cr.getThird();
+        String _string_2 = _third.toString();
+        System.out.println(_string_2);
         System.out.println();
       }
     }
     System.out.println();
     System.out.println("####### COVERAGE RESULT #######");
-    final ArrayList<Triplet<List<String>,Set<String>,String>> splitResult = this.mcdcStatement.splitConcatenatedValues(concatResult);
-    for (final Triplet<List<String>,Set<String>,String> sr : splitResult) {
+    final ArrayList<Triplet<List<String>,Set<String>,List<String>>> splitResult = this.mcdcStatement.splitConcatenatedValues(concatResult);
+    for (final Triplet<List<String>,Set<String>,List<String>> sr : splitResult) {
       {
         List<String> _first = sr.getFirst();
         String _string = _first.toString();
@@ -141,15 +143,16 @@ public class MCDC_Module {
         String _string_1 = _second.toString();
         String _plus_2 = (_string_1 + " => ");
         System.out.print(_plus_2);
-        String _third = sr.getThird();
-        System.out.println(_third);
+        List<String> _third = sr.getThird();
+        String _string_2 = _third.toString();
+        System.out.println(_string_2);
         System.out.println();
       }
     }
-    final ArrayList<Triplet<List<String>,List<String>,String>> notCoveredValues = this.mcdcStatement.notCoveredValues(splitResult);
+    final ArrayList<Triplet<List<String>,List<String>,List<String>>> notCoveredValues = this.mcdcStatement.notCoveredValues(splitResult);
     System.out.println();
     System.out.println("####### NOT COVERED ####### ");
-    for (final Triplet<List<String>,List<String>,String> nc : notCoveredValues) {
+    for (final Triplet<List<String>,List<String>,List<String>> nc : notCoveredValues) {
       {
         List<String> _first = nc.getFirst();
         String _string = _first.toString();
@@ -159,18 +162,19 @@ public class MCDC_Module {
         String _string_1 = _second.toString();
         String _plus_2 = (_string_1 + " => ");
         System.out.print(_plus_2);
-        String _third = nc.getThird();
-        System.out.println(_third);
+        List<String> _third = nc.getThird();
+        String _string_2 = _third.toString();
+        System.out.println(_string_2);
         System.out.println();
       }
     }
-    final ArrayList<List<Triplet<List<String>,List<String>,String>>> listOfEquations = this.mcdcStatement.buildEquations(notCoveredValues, result2);
+    final ArrayList<List<Triplet<List<String>,List<String>,List<String>>>> listOfEquations = this.mcdcStatement.buildEquations(notCoveredValues, result2);
     System.out.println();
     System.out.println("####### EQUATIONS ####### ");
-    for (final List<Triplet<List<String>,List<String>,String>> eq : listOfEquations) {
+    for (final List<Triplet<List<String>,List<String>,List<String>>> eq : listOfEquations) {
       {
         System.out.println("{");
-        for (final Triplet<List<String>,List<String>,String> rr : eq) {
+        for (final Triplet<List<String>,List<String>,List<String>> rr : eq) {
           {
             List<String> _first = rr.getFirst();
             String _string = _first.toString();
@@ -180,8 +184,9 @@ public class MCDC_Module {
             String _string_1 = _second.toString();
             String _plus_2 = (_string_1 + " => ");
             System.out.print(_plus_2);
-            String _third = rr.getThird();
-            System.out.println(_third);
+            List<String> _third = rr.getThird();
+            String _string_2 = _third.toString();
+            System.out.println(_string_2);
           }
         }
         System.out.println("}");
@@ -189,25 +194,25 @@ public class MCDC_Module {
       }
     }
     System.out.println("####### Solving... #######");
-    for (final List<Triplet<List<String>,List<String>,String>> equations : listOfEquations) {
+    for (final List<Triplet<List<String>,List<String>,List<String>>> equations : listOfEquations) {
       this.mcdcStatement.translateAndSolveEquationsWithChoco(equations);
     }
   }
   
-  private List<List<Triplet<List<String>,List<String>,String>>> tripletToListOfList(final Triplet<List<String>,List<String>,String> triplet) {
-    ArrayList<Triplet<List<String>,List<String>,String>> _arrayList = new ArrayList<Triplet<List<String>,List<String>,String>>();
-    final ArrayList<Triplet<List<String>,List<String>,String>> tmp = _arrayList;
+  private List<List<Triplet<List<String>,List<String>,List<String>>>> tripletToListOfList(final Triplet<List<String>,List<String>,List<String>> triplet) {
+    ArrayList<Triplet<List<String>,List<String>,List<String>>> _arrayList = new ArrayList<Triplet<List<String>,List<String>,List<String>>>();
+    final ArrayList<Triplet<List<String>,List<String>,List<String>>> tmp = _arrayList;
     tmp.add(triplet);
-    ArrayList<List<Triplet<List<String>,List<String>,String>>> _arrayList_1 = new ArrayList<List<Triplet<List<String>,List<String>,String>>>();
-    final List<List<Triplet<List<String>,List<String>,String>>> tmpList = _arrayList_1;
+    ArrayList<List<Triplet<List<String>,List<String>,List<String>>>> _arrayList_1 = new ArrayList<List<Triplet<List<String>,List<String>,List<String>>>>();
+    final List<List<Triplet<List<String>,List<String>,List<String>>>> tmpList = _arrayList_1;
     tmpList.add(tmp);
     return tmpList;
   }
   
-  private List<List<Triplet<List<String>,List<String>,String>>> mergePaths(final List<List<Triplet<List<String>,List<String>,String>>> list1, final List<List<Triplet<List<String>,List<String>,String>>> list2) {
+  private List<List<Triplet<List<String>,List<String>,List<String>>>> mergePaths(final List<List<Triplet<List<String>,List<String>,List<String>>>> list1, final List<List<Triplet<List<String>,List<String>,List<String>>>> list2) {
     try {
-      ArrayList<List<Triplet<List<String>,List<String>,String>>> _arrayList = new ArrayList<List<Triplet<List<String>,List<String>,String>>>();
-      final ArrayList<List<Triplet<List<String>,List<String>,String>>> result = _arrayList;
+      ArrayList<List<Triplet<List<String>,List<String>,List<String>>>> _arrayList = new ArrayList<List<Triplet<List<String>,List<String>,List<String>>>>();
+      final ArrayList<List<Triplet<List<String>,List<String>,List<String>>>> result = _arrayList;
       final int size1 = list1.size();
       final int size2 = list2.size();
       boolean _equals = (size2 == 0);
@@ -219,11 +224,11 @@ public class MCDC_Module {
         if (_equals_1) {
           return list2;
         } else {
-          for (final List<Triplet<List<String>,List<String>,String>> e1 : list1) {
-            for (final List<Triplet<List<String>,List<String>,String>> e2 : list2) {
+          for (final List<Triplet<List<String>,List<String>,List<String>>> e1 : list1) {
+            for (final List<Triplet<List<String>,List<String>,List<String>>> e2 : list2) {
               {
-                ArrayList<Triplet<List<String>,List<String>,String>> _arrayList_1 = new ArrayList<Triplet<List<String>,List<String>,String>>();
-                final ArrayList<Triplet<List<String>,List<String>,String>> tmpList = _arrayList_1;
+                ArrayList<Triplet<List<String>,List<String>,List<String>>> _arrayList_1 = new ArrayList<Triplet<List<String>,List<String>,List<String>>>();
+                final ArrayList<Triplet<List<String>,List<String>,List<String>>> tmpList = _arrayList_1;
                 tmpList.addAll(e1);
                 tmpList.addAll(e2);
                 result.add(tmpList);

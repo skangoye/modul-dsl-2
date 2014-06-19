@@ -17,7 +17,7 @@ class MCDC_Module {
 	
 	def enumerateAllModulePaths(MODULE_DECL module){
 		val allStatements = module.body.statements
-		var List<List<Triplet <List<String>, List<String>, String>>> result = new ArrayList<List<Triplet <List<String>, List<String>, String>>>
+		var List<List<Triplet <List<String>, List<String>, List<String> >>> result = new ArrayList<List<Triplet <List<String>, List<String>, List<String> >>>
 		
 		for(st: allStatements){
 			switch(st){
@@ -63,7 +63,7 @@ class MCDC_Module {
 			for(rr: r){
 				System.out.print(rr.first.toString + " => ")
 				System.out.print(rr.second.toString + " => " )
-				System.out.println(rr.third)
+				System.out.println(rr.third.toString )
 			}
 			
 			System.out.println("}")
@@ -77,7 +77,7 @@ class MCDC_Module {
 			for(cr: concatResult){
 				System.out.print(cr.first.toString + " => ")
 				System.out.print(cr.second.toString + " => " )
-				System.out.println(cr.third)
+				System.out.println(cr.third.toString )
 				System.out.println
 			}
 		System.out.println
@@ -86,7 +86,7 @@ class MCDC_Module {
 			for(sr: splitResult){
 				System.out.print(sr.first.toString + " => ")
 				System.out.print(sr.second.toString + " => " )
-				System.out.println(sr.third)
+				System.out.println(sr.third.toString )
 				System.out.println
 			}
 		val notCoveredValues = mcdcStatement.notCoveredValues(splitResult)
@@ -95,7 +95,7 @@ class MCDC_Module {
 		for(nc: notCoveredValues){
 				System.out.print(nc.first.toString + " => ")
 				System.out.print(nc.second.toString + " => " )
-				System.out.println(nc.third)
+				System.out.println(nc.third.toString )
 				System.out.println
 		}
 		
@@ -109,7 +109,7 @@ class MCDC_Module {
 			for(rr: eq){
 				System.out.print(rr.first.toString + " => ")
 				System.out.print(rr.second.toString + " => " )
-				System.out.println(rr.third)
+				System.out.println(rr.third.toString )
 			}
 			
 			System.out.println("}")
@@ -124,17 +124,17 @@ class MCDC_Module {
 		//return result
 	}//enumerateAllModulePaths
 	
-	def private tripletToListOfList(Triplet <List<String>, List<String>, String> triplet){
-		val tmp = new ArrayList<Triplet <List<String>, List<String>, String>>
+	def private tripletToListOfList(Triplet <List<String>, List<String>, List<String> > triplet){
+		val tmp = new ArrayList<Triplet <List<String>, List<String>, List<String> >>
 		tmp.add(triplet)
-		val List<List<Triplet <List<String>, List<String>, String>>> tmpList = new ArrayList<List<Triplet <List<String>, List<String>, String>>>
+		val List<List<Triplet <List<String>, List<String>, List<String> >>> tmpList = new ArrayList<List<Triplet <List<String>, List<String>, List<String> >>>
 		tmpList.add(tmp)
 		return tmpList
 	}//tripletToListOfList
 	
-	def private mergePaths(List<List<Triplet <List<String>, List<String>, String>>> list1, List<List<Triplet <List<String>, List<String>, String>>> list2){
+	def private mergePaths(List<List<Triplet <List<String>, List<String>, List<String> >>> list1, List<List<Triplet <List<String>, List<String>, List<String> >>> list2){
 		
-		val result = new ArrayList<List<Triplet <List<String>, List<String>, String>>>
+		val result = new ArrayList<List<Triplet <List<String>, List<String>, List<String> >>>
 		
 		val size1 = list1.size
 		val size2 = list2.size
@@ -149,7 +149,7 @@ class MCDC_Module {
 			else{//list1 is not empty and list2 is not empty
 				for(e1: list1){
 					for(e2: list2){
-						val tmpList = new ArrayList<Triplet <List<String>, List<String>, String>>
+						val tmpList = new ArrayList<Triplet <List<String>, List<String>, List<String> >>
 						
 						tmpList.addAll(e1)
 						tmpList.addAll(e2) //tmpList now contains 'e1 + e2'
