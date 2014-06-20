@@ -163,6 +163,23 @@ class MCDC_GeneratorUtils {
 	/**
 	 * 
 	 */
+	 def static convertToBooleanChar(int value){
+	 	if(value == 0){
+	 		return "F"
+	 	}
+	 	else{
+	 		if(value == 1){
+	 			return "T"
+	 		}
+	 		else{
+	 			throw new Exception("Cannot convert to Boolean char")
+	 		}
+	 	}
+	 }
+	 
+	/**
+	 * 
+	 */
 	def static indexesBeforeSeparator(List<String> list){
 		val indexes = new ArrayList<Couple<Integer,Integer>>
 		val size = list.size

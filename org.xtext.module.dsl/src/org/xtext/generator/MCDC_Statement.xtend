@@ -579,7 +579,8 @@ class MCDC_Statement {
 	/**
 	 * 
 	 */
-	def translateAndSolveEquationsWithChoco(List<Triplet<List<String>, List<String>, List<String> >> listOfEquations){
+	def void translateAndSolveEquationsWithChoco(List<Triplet<List<String>, List<String>, List<String> >> listOfEquations,
+												 List<Triplet<List<String>, List<String>, List<String>>> testPool){
 		
 		val chocoModel = new ProblemChoco() //choco model
 		val integerVarOveralList = new ArrayList< List<IntegerVariable>>
@@ -685,25 +686,61 @@ class MCDC_Statement {
 		val solve = chocoModel.solve
 		
 		if(solve){
-			
-			System.out.println("Identifiers are: " + listOfSubIdentifiers.toString)
-			System.out.println
-			
-			for(list: integerVarOveralList){
-				for(intVar: list){
-					System.out.println( intVar.getName() + ": "+ chocoModel.getIntValue(intVar));
-				}
-				System.out.println
-			}
-			System.out.println("######################")
-			System.out.println
+			addToTestPool(chocoModel, testPool, integerVarOveralList, listOfSubIdentifiers)
 		}
 		else{
-			System.out.println("Infeasible")
+			//System.out.println("Infeasible")
 		}
 		
 	}//translateAndSolveEquationsWithChoco
 	
+	
+	/**
+	 * 
+	 */
+	def private void addToTestPool(ProblemChoco pb, List<Triplet<List<String>, List<String>, List<String>>> testPool, 
+									List< List<IntegerVariable> > listOfIntegerVars, List<String> listOfsubIdentifiers){
+		
+		val listOfVariables = new ArrayList<String>
+		var valueToAdd = "" //new ArrayList<String>
+		
+		for(list: listOfIntegerVars){
+			
+			for(intVar: list){
+				val intVarName = intVar.getName()
+				if(intVarName.charAt(0).toString == "*"){
+					listOfVariables.add("*")
+				}
+				else{
+					listOfVariables.add(intVarName)
+				}
+				
+				valueToAdd = valueToAdd + pb.getIntValue(intVar).convertToBooleanChar
+			}//for
+			
+			if(list != listOfIntegerVars.last){//Add the separator '#'
+				listOfVariables.add("#")
+				valueToAdd = valueToAdd + "#"
+			}
+		
+		}//for
+	
+		//add
+		val target = testPool.findFirst[it.first.equals(listOfVariables) && it.third.equals(listOfsubIdentifiers)]
+		
+		if(target != null){
+			target.second.add(valueToAdd)
+		}
+		else{
+			throw new Exception("Cannot find a target where to add a test case")
+		}
+	
+	}//addToTestPool
+	
+	
+	/**
+	 * 
+	 */
 	def private Object getChocoIntegerVar(String str, List<IntegerVariable> list){
 	 	for(e: list){
 	 		if(e.name == str){
@@ -711,6 +748,6 @@ class MCDC_Statement {
 	 		}
 	 	}
 	 	throw new Exception("Error choco")
-	 }
+	 }//getChocoIntegerVar
 	 
 }//class

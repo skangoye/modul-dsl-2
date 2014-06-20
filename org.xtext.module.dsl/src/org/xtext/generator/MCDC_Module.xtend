@@ -118,8 +118,38 @@ class MCDC_Module {
 		
 		System.out.println("####### Solving... #######")
 		for(equations: listOfEquations){
-			mcdcStatement.translateAndSolveEquationsWithChoco(equations)
+			mcdcStatement.translateAndSolveEquationsWithChoco(equations, concatResult)
 		} 
+		
+		System.out.println("####### NEW TEST SUITES... #######")
+		System.out.println
+			for(cr: concatResult){
+				System.out.print(cr.first.toString + " => ")
+				System.out.print(cr.second.toString + " => " )
+				System.out.println(cr.third.toString )
+				System.out.println
+			}
+		System.out.println
+		
+		System.out.println
+		System.out.println("####### COVERAGE RESULT #######")
+		val splitResult1 = mcdcStatement.splitConcatenatedValues(concatResult)
+			for(sr: splitResult1){
+				System.out.print(sr.first.toString + " => ")
+				System.out.print(sr.second.toString + " => " )
+				System.out.println(sr.third.toString )
+				System.out.println
+			}
+		val notCoveredValues2 = mcdcStatement.notCoveredValues(splitResult1)
+		System.out.println
+		System.out.println("####### NOT COVERED ####### ")
+		for(nc: notCoveredValues2){
+				System.out.print(nc.first.toString + " => ")
+				System.out.print(nc.second.toString + " => " )
+				System.out.println(nc.third.toString )
+				System.out.println
+		}
+		
 		
 		//return result
 	}//enumerateAllModulePaths
