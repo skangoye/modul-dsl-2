@@ -16,7 +16,7 @@ import org.xtext.moduleDsl.STATEMENT
 import org.xtext.moduleDsl.TmpVAR_DECL
 import org.xtext.solver.ProblemChoco
 
-import static extension org.xtext.solver.ChocoUtils.*
+import static org.xtext.solver.ChocoUtils.*
 
 import static extension org.xtext.generator.MCDC_GeneratorUtils.*
 
@@ -31,25 +31,34 @@ class MCDC_Statement {
 	}
 	
 	def mcdcVarStatement(AbstractVAR_DECL statement){
+		
+		val expression = (statement as TmpVAR_DECL).value
+		
+		identifier = identifier + 1
+		listOfBooleanExpression.add(identifier, expression)
+		val List<String> subIdentifier = new ArrayList<String>
+		subIdentifier.add(identifier + "X")
+		
+		val List<String> varInExpression = new ArrayList<String>			
+		varInExpression.add((statement as TmpVAR_DECL).name)
+			
 		if(statement.type.type != "bool"){
-			return null
+			val variableValue = stringReprOfExpression(expression)
+			val List<String> stringRepOfVarVal = new ArrayList<String>
+			stringRepOfVarVal.add(variableValue)
+			
+			listOfMcdcValues.add(identifier, stringRepOfVarVal)
+			
+			return new Triplet(varInExpression, stringRepOfVarVal, subIdentifier)
 		}
 		else{//statement is of type 'TmpVar_DECL' and 'bool'
+		
+			varInExpression(expression, varInExpression)
 			
-			val booleanExpression = (statement as TmpVAR_DECL).value
+			val mcdcValues = mcdcOfCond.mcdcOfBooleanExpression(expression).reduceList
 			
-			val List<String> varInExpression = new ArrayList<String>			
-			varInExpression.add((statement as TmpVAR_DECL).name)
-			varInExpression(booleanExpression, varInExpression)
 			
-			val mcdcValues = mcdcOfCond.mcdcOfBooleanExpression(booleanExpression).reduceList
-			
-			identifier = identifier + 1
-			listOfBooleanExpression.add(identifier, booleanExpression)
 			listOfMcdcValues.add(identifier, mcdcValues)
-			
-			val List<String> subIdentifier = new ArrayList<String>
-			subIdentifier.add(identifier + "X")
 			
 			return new Triplet(varInExpression, mcdcValues, subIdentifier)
 		}
@@ -60,22 +69,32 @@ class MCDC_Statement {
 		val booleanExpression = assign.right
 		val variable = assign.left.variable
 		
+		identifier = identifier + 1
+		listOfBooleanExpression.add(identifier, booleanExpression)
+		
+		val List<String> varInExpression = new ArrayList<String>
+		varInExpression.add(variable.name)
+		
+		val List<String> subIdentifier = new ArrayList<String>
+		subIdentifier.add(identifier + "X")
+		
 		if(variable.type.type != "bool"){
-			return null
+			
+			val variableValue = stringReprOfExpression(booleanExpression)
+			val List<String> stringRepOfVarVal = new ArrayList<String>
+			stringRepOfVarVal.add(variableValue)
+			
+			listOfMcdcValues.add(identifier, stringRepOfVarVal)
+			
+			return new Triplet(varInExpression, stringRepOfVarVal, subIdentifier)
 		}
 		else{
-			val List<String> varInExpression = new ArrayList<String>
-			varInExpression.add(variable.name)
+			
 			varInExpression(booleanExpression, varInExpression)
 			
 			val mcdcValues = mcdcOfCond.mcdcOfBooleanExpression(booleanExpression).reduceList
 			
-			identifier = identifier + 1
-			listOfBooleanExpression.add(identifier, booleanExpression)
 			listOfMcdcValues.add(identifier, mcdcValues)
-			
-			val List<String> subIdentifier = new ArrayList<String>
-			subIdentifier.add(identifier + "X")
 			
 			return new Triplet(varInExpression, mcdcValues, subIdentifier)
 		}
@@ -527,6 +546,7 @@ class MCDC_Statement {
 					if (match != null){
 						val targetIndex = list.indexOf(match)
 						val matchList = list.copyListOfTriplet
+						
 						//set the second param of the target triplet with the uncovered value
 						matchList.get(targetIndex).setSecond(uncoveredVal.toStringArray)
 						
@@ -535,10 +555,15 @@ class MCDC_Statement {
 						
 						val targetTriplet = matchList.get(targetIndex)
 						val targetListOfVariables = targetTriplet.first
+						val listOfIndexes = new ArrayList<String> //records the indexes of triplets whose have one variable in the variable list	  
+						
 						do{
-							if(cpt != targetIndex){
+							
+							val currentTriplet = matchList.get(cpt)
+							
+							if((cpt != targetIndex) && (currentTriplet.first.size > 1)){// the current triplet is not the target triplet
+							//nor a triplet whose the variables values are imposed
 								
-								val currentTriplet = matchList.get(cpt)
 								val currentListOfVariables = currentTriplet.first
 								
 								if(currentTriplet.first.get(0) == "*"){
@@ -562,11 +587,54 @@ class MCDC_Statement {
 									}//for i
 								
 								}//if currentListOfVariables
-							
 							}
+							else{
+								if(currentTriplet.first.size == 1){
+									//the cuurrent triplet's list of variable holds an imposed value
+									// => Store the index of the triplet
+									listOfIndexes.add(cpt.toString)
+								}
+							}
+						
 						} while( (cpt=cpt+1) < size )
+						
+						//new loop to propagate imposed variables' values ()
+						var addToList = true
+						
+						for(i: listOfIndexes){
+						 
+						  val myTriplet = matchList.get(i.parseInt)
+						  val myTripletVarList = myTriplet.first
 					
-					listOfEquations.add(matchList)
+						  for(t: matchList){
+						  	if(t!=myTriplet){
+						  		val currentTripletVarList = t.first
+						  		if( currentTripletVarList.intersectionOfLists(myTripletVarList).size > 0){
+						  			val indexesOfcommonVars = indexOfCommonVars(currentTripletVarList, myTripletVarList)
+						  			
+						  			for(indexesCouple: indexesOfcommonVars){
+										val myTripletValuesList = myTriplet.second
+										val currentTripletValuesList = t.second
+										if(currentTripletValuesList.get(indexesCouple.first) =="*"){
+											t.second.set(indexesCouple.first, myTripletValuesList.get(indexesCouple.second))
+										}
+										else{
+											if(currentTripletValuesList.get(indexesCouple.first) != myTripletValuesList.get(indexesCouple.second)){
+												//equations with no solution
+												addToList = false
+											}
+										}									
+									
+									}//for indexesCouple
+									
+						  		}
+						  	}
+						  }//for
+						}				
+					
+					if(addToList) {
+						listOfEquations.add(matchList)
+					}
 					
 					}//if match
 				]//for each
@@ -653,8 +721,7 @@ class MCDC_Statement {
 			val chocoResultVariable = variables.get(0).getChocoIntegerVar(integerVarList)
 			
 			//create constraints with choco
-		 	if(equationResult == "*" || equationResult == "T"){
-				
+		 	if(equationResult == "T"){
 				if (size == 1){ 
 					//Here the size of the variable list is 1. 
 					//That means that the variable is assigned with a boolean constant value ('true' or 'false')
@@ -673,19 +740,40 @@ class MCDC_Statement {
 			else{
 				if(equationResult == "F"){
 					val constraint = chocoModel.eq(chocoExpression , chocoResultVariable)
-						//Add constraints
-						chocoModel.addConstraint(constraint)
+					//Add constraints
+					chocoModel.addConstraint(constraint)
 				}
 				else{
-					throw new Exception("unknown value")	
+					if(equationResult == "*"){
+						////////////////
+						val constraint = chocoModel.eq(chocoExpression , chocoResultVariable)
+						//Add constraints
+						chocoModel.addConstraint(constraint)
+					}
+					else{
+						throw new Exception("unknown value")	
+					}
 				}
-			  }//else
+			}//else
 			
 		}//for equations
 	
 		val solve = chocoModel.solve
 		
-		if(solve){
+	 	if(solve){
+			
+			System.out.println("Identifiers are: " + listOfSubIdentifiers.toString)
+			System.out.println
+			
+			for(list: integerVarOveralList){
+				for(intVar: list){
+					System.out.println( intVar.getName() + ": "+ chocoModel.getIntValue(intVar));
+				}
+				System.out.println
+			}
+			System.out.println("######################")
+			System.out.println
+		
 			addToTestPool(chocoModel, testPool, integerVarOveralList, listOfSubIdentifiers)
 		}
 		else{

@@ -401,6 +401,29 @@ class MCDC_GeneratorUtils {
 		}
 	}
 	
+	def static String stringReprOfExpression(EXPRESSION expression){
+		
+		switch(expression){
+	 		AND: stringReprOfExpression(expression.left) + "and" + stringReprOfExpression(expression.right)
+	 		OR: stringReprOfExpression(expression.left) + "or" + stringReprOfExpression(expression.right)
+	 		EQUAL_DIFF: stringReprOfExpression(expression.left) + "==" + stringReprOfExpression(expression.right)
+	 		NOT: "not" + stringReprOfExpression(expression.exp)
+	 		COMPARISON: stringReprOfExpression(expression.left) + expression.op + stringReprOfExpression(expression.right)
+	 		VarExpRef: expression.vref.name
+	 		ADD: stringReprOfExpression(expression.left) + "+" + stringReprOfExpression(expression.right)
+	  		SUB: stringReprOfExpression(expression.left) + "-" + stringReprOfExpression(expression.right)
+	  		MULT:stringReprOfExpression(expression.left) + "*" + stringReprOfExpression(expression.right)
+	  		DIV: stringReprOfExpression(expression.left) + "/" + stringReprOfExpression(expression.right)
+	  		intConstant: expression.value.toString
+	  		realConstant:expression.value.toString
+	  		strConstant: expression.value.toString
+	  		enumConstant: expression.value.toString
+	  		boolConstant: expression.value.toString
+	  		bitConstant: expression.value.toString
+	  		hexConstant: expression.value.toString
+	 		
+	 	}
+	}
 	
 	/**
 	 * Stores in a list, all the variables that are involved in an expression

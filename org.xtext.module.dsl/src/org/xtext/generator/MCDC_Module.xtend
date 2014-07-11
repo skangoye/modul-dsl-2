@@ -70,7 +70,7 @@ class MCDC_Module {
 			System.out.println
 		}
 		
-		//concat mcdc values
+ 		//concat mcdc values
 		System.out.println
 		System.out.println("####### TEST SUITES #######")
 		val concatResult = mcdcStatement.concatMcdcValues(result2)	
@@ -149,7 +149,7 @@ class MCDC_Module {
 				System.out.println(nc.third.toString )
 				System.out.println
 		}
-		
+	
 		
 		//return result
 	}//enumerateAllModulePaths
