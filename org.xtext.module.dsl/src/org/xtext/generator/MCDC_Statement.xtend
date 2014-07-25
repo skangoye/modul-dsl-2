@@ -33,26 +33,25 @@ class MCDC_Statement {
 	def mcdcVarStatement(AbstractVAR_DECL statement){
 		
 		val expression = (statement as TmpVAR_DECL).value
-		
-		identifier = identifier + 1
-		listOfBooleanExpression.add(identifier, expression)
-		val List<String> subIdentifier = new ArrayList<String>
-		subIdentifier.add(identifier + "X")
-		
-		val List<String> varInExpression = new ArrayList<String>			
-		varInExpression.add((statement as TmpVAR_DECL).name)
 			
 		if(statement.type.type != "bool"){
-			val variableValue = stringReprOfExpression(expression)
-			val List<String> stringRepOfVarVal = new ArrayList<String>
-			stringRepOfVarVal.add(variableValue)
+			//val variableValue = stringReprOfExpression(expression)
+			//val List<String> stringRepOfVarVal = new ArrayList<String>
+			//stringRepOfVarVal.add(variableValue)
 			
-			listOfMcdcValues.add(identifier, stringRepOfVarVal)
+			//listOfMcdcValues.add(identifier, stringRepOfVarVal)
 			
-			return new Triplet(varInExpression, stringRepOfVarVal, subIdentifier)
+			return null //new Triplet(varInExpression, stringRepOfVarVal, subIdentifier)
 		}
 		else{//statement is of type 'TmpVar_DECL' and 'bool'
 		
+			identifier = identifier + 1
+			listOfBooleanExpression.add(identifier, expression)
+			val List<String> subIdentifier = new ArrayList<String>
+			subIdentifier.add(identifier + "X")
+			
+			val List<String> varInExpression = new ArrayList<String>			
+			varInExpression.add((statement as TmpVAR_DECL).name)
 			varInExpression(expression, varInExpression)
 			
 			val mcdcValues = mcdcOfCond.mcdcOfBooleanExpression(expression).reduceList
@@ -69,27 +68,25 @@ class MCDC_Statement {
 		val booleanExpression = assign.right
 		val variable = assign.left.variable
 		
-		identifier = identifier + 1
-		listOfBooleanExpression.add(identifier, booleanExpression)
-		
-		val List<String> varInExpression = new ArrayList<String>
-		varInExpression.add(variable.name)
-		
-		val List<String> subIdentifier = new ArrayList<String>
-		subIdentifier.add(identifier + "X")
-		
 		if(variable.type.type != "bool"){
 			
-			val variableValue = stringReprOfExpression(booleanExpression)
-			val List<String> stringRepOfVarVal = new ArrayList<String>
-			stringRepOfVarVal.add(variableValue)
+			//val variableValue = stringReprOfExpression(booleanExpression)
+			//val List<String> stringRepOfVarVal = new ArrayList<String>
+			//stringRepOfVarVal.add(variableValue)
 			
-			listOfMcdcValues.add(identifier, stringRepOfVarVal)
+			//listOfMcdcValues.add(identifier, stringRepOfVarVal)
 			
-			return new Triplet(varInExpression, stringRepOfVarVal, subIdentifier)
+			return null//new Triplet(varInExpression, stringRepOfVarVal, subIdentifier)
 		}
 		else{
+			identifier = identifier + 1
+			listOfBooleanExpression.add(identifier, booleanExpression)
 			
+			val List<String> varInExpression = new ArrayList<String>
+			varInExpression.add(variable.name)
+			
+			val List<String> subIdentifier = new ArrayList<String>
+			subIdentifier.add(identifier + "X")
 			varInExpression(booleanExpression, varInExpression)
 			
 			val mcdcValues = mcdcOfCond.mcdcOfBooleanExpression(booleanExpression).reduceList
@@ -322,6 +319,51 @@ class MCDC_Statement {
 		return resultOfConcat
 	}//concatMcdcValues
 	
+	def concatMcdcValues2(List<List<Triplet< List<String>, List<String>, List<String> >>> listOfList) {
+		
+		val resultOfConcat = new ArrayList<Triplet<List<String>, List<String>, List<String> >>
+		
+		for(currentList: listOfList){
+			val size = currentList.size
+			if(size == 0){
+				throw new Exception("List cannot be empty")
+			}
+			else{
+				if(size == 1){
+					resultOfConcat.add(currentList.get(0))
+				}
+				else{//size > 1
+					//copy in a new list the currentList's elements
+					var  copyList = currentList.copyListOfTriplet.reverse
+		
+					var triplet1 = copyList.get(1)
+					var triplet2 = copyList.get(0)
+					while(copyList.size != 1){
+						
+						if( (triplet1.first.intersectionOfLists(triplet2.first)).size > 0 ) {
+							//set the first element with the concatenated value
+							copyList.set(0, concatWithConstraints(triplet1,triplet2))
+						}
+						else{
+							//set the first element with the concatenated value
+							copyList.set(0, concatWithoutConstraints(triplet1,triplet2))	
+						}
+						
+						copyList.remove(1)
+						
+						if(copyList.size != 1){
+							triplet1 = copyList.get(1) //assign the second element of copyList to triplet1
+							triplet2 = copyList.get(0) //assign the second element of copyList to triplet1
+						}
+					}//while
+					
+					resultOfConcat.add(copyList.get(0))
+				}//else
+			}
+			
+		}//for
+		return resultOfConcat
+	}//concatMcdcValues
 	
 	def private concatWithoutConstraints(Triplet<List<String>,List<String>, List<String> > t1,Triplet<List<String>,List<String>, List<String> > t2) {
 		
@@ -344,7 +386,7 @@ class MCDC_Statement {
 		val size2 = list2.size //size of list2
 		
 		if (size1 == 0 || size2 == 0){
-			throw new Exception("Illegal arguments")
+			return new Triplet (concatVariables, concatValues, concatIdents) //throw new Exception("Illegal arguments")
 		}
 		
 		val minSize = Math.min(size1, size2)
@@ -455,7 +497,7 @@ class MCDC_Statement {
 			//indexes delimited by the separator '#'
 			//The indexes of variables can be used to split the values
 			val indexOfvariables = variables.indexesBeforeSeparator
-			val indexOfIdents = (identSequence).indexesBeforeSeparator
+			val indexOfIdents = identSequence.indexesBeforeSeparator
 			
 			var i = 0
 			val size = indexOfvariables.size
@@ -466,7 +508,7 @@ class MCDC_Statement {
 				val identLeftIndex = indexOfIdents.get(i).first
 				val identRightIndex = indexOfIdents.get(i).second
 				
-				//sub-list of variables
+				//sub-lists of variables
 				val varSubList = variables.subList(varLeftIndex, varRigthIndex + 1)
 				val ident = identSequence.subList(identLeftIndex, identRightIndex + 1)
 				val Set<String> splitValues = new TreeSet<String>
@@ -474,7 +516,7 @@ class MCDC_Statement {
 				
 				splitConcatenatedResults.add(new Triplet(varSubList, splitValues, ident))
 				
-			}while ( (i=i+1) < size)
+			}while ( (i=i+1) < size )
 		
 		}//for
 		
@@ -482,8 +524,8 @@ class MCDC_Statement {
 	 	var j = 0
 		do{
 			val tmp = splitConcatenatedResults.get(j)
-			
-			val dup = splitConcatenatedResults.findFirst[(it != tmp) && (it.third == tmp.third)]
+			val subIdentifier = tmp.third
+			val dup = splitConcatenatedResults.findFirst[(it != tmp) && (it.third.equals(subIdentifier))]
 			
 			if (dup != null){
 				tmp.second.addAll(dup.second)
@@ -491,7 +533,11 @@ class MCDC_Statement {
 				j = j - 1
 			}
 			
-		}while ( (j=j+1) < splitConcatenatedResults.size)
+			//filter 'values that are not part of the mcdc values'
+			val newValues = tmp.second.keepOnlyMcdcValues(subIdentifier.extractIdentifier.parseInt)
+			tmp.setSecond(newValues)
+		
+		}while ( (j=j+1) < splitConcatenatedResults.size )
 		
 		return splitConcatenatedResults
 	}//splitConcatenatedValues
@@ -837,5 +883,14 @@ class MCDC_Statement {
 	 	}
 	 	throw new Exception("Error choco")
 	 }//getChocoIntegerVar
+	 
+	 /**
+	  * 
+	  */
+	  def private keepOnlyMcdcValues(Set<String> values, int identifier){
+	  	val myMcdcValues = listOfMcdcValues.get(identifier)
+	  	val newValues = values.filter[myMcdcValues.contains(it)]
+	  	return newValues.toSet
+	  }
 	 
 }//class

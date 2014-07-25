@@ -73,7 +73,7 @@ class MCDC_Module {
  		//concat mcdc values
 		System.out.println
 		System.out.println("####### TEST SUITES #######")
-		val concatResult = mcdcStatement.concatMcdcValues(result2)	
+		val concatResult = mcdcStatement.concatMcdcValues2(result2)	
 			for(cr: concatResult){
 				System.out.print(cr.first.toString + " => ")
 				System.out.print(cr.second.toString + " => " )
@@ -124,10 +124,12 @@ class MCDC_Module {
 		System.out.println("####### NEW TEST SUITES... #######")
 		System.out.println
 			for(cr: concatResult){
-				System.out.print(cr.first.toString + " => ")
-				System.out.print(cr.second.toString + " => " )
-				System.out.println(cr.third.toString )
-				System.out.println
+				if(cr.second.size > 0){
+					System.out.print(cr.first.toString + " => ")
+					System.out.print(cr.second.toString + " => " )
+					System.out.println(cr.third.toString )
+					System.out.println	
+				}
 			}
 		System.out.println
 		

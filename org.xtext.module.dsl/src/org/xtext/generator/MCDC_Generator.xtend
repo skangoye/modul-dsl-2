@@ -34,6 +34,10 @@ class MCDC_Generator {
 	 	for(i:linkResult){
 	 		mcdcResults.add(i.first)
 	 	}
+	 	
+	 	notCount = 0 //reset notCountValue
+	 	firstOperator = "" //reset first operator
+	 	
 	 	return mcdcResults
 	 }//mcdcOfBooleanExpression
 	 
