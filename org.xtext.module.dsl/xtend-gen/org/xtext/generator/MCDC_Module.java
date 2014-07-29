@@ -18,6 +18,7 @@ import org.xtext.moduleDsl.IF_STATEMENT;
 import org.xtext.moduleDsl.LOOP_STATEMENT;
 import org.xtext.moduleDsl.MODULE_DECL;
 import org.xtext.moduleDsl.STATEMENT;
+import org.xtext.optimization.optimStrategy1;
 
 @SuppressWarnings("all")
 public class MCDC_Module {
@@ -25,6 +26,13 @@ public class MCDC_Module {
     public MCDC_Statement apply() {
       MCDC_Statement _mCDC_Statement = new MCDC_Statement();
       return _mCDC_Statement;
+    }
+  }.apply();
+  
+  private final optimStrategy1 optim = new Function0<optimStrategy1>() {
+    public optimStrategy1 apply() {
+      optimStrategy1 _optimStrategy1 = new optimStrategy1();
+      return _optimStrategy1;
     }
   }.apply();
   
@@ -113,7 +121,7 @@ public class MCDC_Module {
     }
     System.out.println();
     System.out.println("####### TEST SUITES #######");
-    final ArrayList<Triplet<List<String>,List<String>,List<String>>> concatResult = this.mcdcStatement.concatMcdcValues(result2);
+    final ArrayList<Triplet<List<String>,List<String>,List<String>>> concatResult = this.mcdcStatement.concatMcdcValues2(result2);
     for (final Triplet<List<String>,List<String>,List<String>> cr : concatResult) {
       {
         List<String> _first = cr.getFirst();
@@ -195,8 +203,72 @@ public class MCDC_Module {
     }
     System.out.println("####### Solving... #######");
     for (final List<Triplet<List<String>,List<String>,List<String>>> equations : listOfEquations) {
-      this.mcdcStatement.translateAndSolveEquationsWithChoco(equations);
+      this.mcdcStatement.translateAndSolveEquationsWithChoco(equations, concatResult);
     }
+    System.out.println("####### NEW TEST SUITES... #######");
+    System.out.println();
+    for (final Triplet<List<String>,List<String>,List<String>> cr_1 : concatResult) {
+      List<String> _second = cr_1.getSecond();
+      int _size_1 = _second.size();
+      boolean _greaterThan = (_size_1 > 0);
+      if (_greaterThan) {
+        List<String> _first = cr_1.getFirst();
+        String _string = _first.toString();
+        String _plus_1 = (_string + " => ");
+        System.out.print(_plus_1);
+        List<String> _second_1 = cr_1.getSecond();
+        String _string_1 = _second_1.toString();
+        String _plus_2 = (_string_1 + " => ");
+        System.out.print(_plus_2);
+        List<String> _third = cr_1.getThird();
+        String _string_2 = _third.toString();
+        System.out.println(_string_2);
+        System.out.println();
+      }
+    }
+    System.out.println();
+    System.out.println();
+    System.out.println("####### COVERAGE RESULT #######");
+    final ArrayList<Triplet<List<String>,Set<String>,List<String>>> splitResult1 = this.mcdcStatement.splitConcatenatedValues(concatResult);
+    for (final Triplet<List<String>,Set<String>,List<String>> sr_1 : splitResult1) {
+      {
+        List<String> _first_1 = sr_1.getFirst();
+        String _string_3 = _first_1.toString();
+        String _plus_3 = (_string_3 + " => ");
+        System.out.print(_plus_3);
+        Set<String> _second_2 = sr_1.getSecond();
+        String _string_4 = _second_2.toString();
+        String _plus_4 = (_string_4 + " => ");
+        System.out.print(_plus_4);
+        List<String> _third_1 = sr_1.getThird();
+        String _string_5 = _third_1.toString();
+        System.out.println(_string_5);
+        System.out.println();
+      }
+    }
+    final ArrayList<Triplet<List<String>,List<String>,List<String>>> notCoveredValues2 = this.mcdcStatement.notCoveredValues(splitResult1);
+    System.out.println();
+    System.out.println("####### NOT COVERED ####### ");
+    for (final Triplet<List<String>,List<String>,List<String>> nc_1 : notCoveredValues2) {
+      {
+        List<String> _first_1 = nc_1.getFirst();
+        String _string_3 = _first_1.toString();
+        String _plus_3 = (_string_3 + " => ");
+        System.out.print(_plus_3);
+        List<String> _second_2 = nc_1.getSecond();
+        String _string_4 = _second_2.toString();
+        String _plus_4 = (_string_4 + " => ");
+        System.out.print(_plus_4);
+        List<String> _third_1 = nc_1.getThird();
+        String _string_5 = _third_1.toString();
+        System.out.println(_string_5);
+        System.out.println();
+      }
+    }
+    System.out.println();
+    System.out.println("####### VECTORS ####### ");
+    ArrayList<List<String>> _mcdcvalues = this.mcdcStatement.mcdcvalues();
+    this.optim.optimize(concatResult, _mcdcvalues, notCoveredValues2);
   }
   
   private List<List<Triplet<List<String>,List<String>,List<String>>>> tripletToListOfList(final Triplet<List<String>,List<String>,List<String>> triplet) {

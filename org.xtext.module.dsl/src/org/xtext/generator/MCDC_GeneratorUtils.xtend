@@ -201,6 +201,17 @@ class MCDC_GeneratorUtils {
 	}
 	
 	/**
+	 * 
+	 */
+	def static arrayToString(List<String> list){
+		var tmpStr = ""
+		for(str: list){
+			tmpStr = tmpStr + str
+		}
+		return tmpStr
+	}
+	
+	/**
 	 * Parse a given string to an 'int' value
 	 * @param 
 	 * 		str valid String to be parsed

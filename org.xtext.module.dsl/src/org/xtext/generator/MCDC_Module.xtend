@@ -10,10 +10,12 @@ import org.xtext.moduleDsl.ASSIGN_STATEMENT
 import org.xtext.moduleDsl.ERROR_STATEMENT
 import org.xtext.moduleDsl.LOOP_STATEMENT
 import static extension org.xtext.generator.MCDC_GeneratorUtils.*
+import org.xtext.optimization.optimStrategy1
 
 class MCDC_Module {
 	
 	val mcdcStatement = new MCDC_Statement()
+	val optim = new optimStrategy1()
 	
 	def enumerateAllModulePaths(MODULE_DECL module){
 		val allStatements = module.body.statements
@@ -136,6 +138,7 @@ class MCDC_Module {
 		System.out.println
 		System.out.println("####### COVERAGE RESULT #######")
 		val splitResult1 = mcdcStatement.splitConcatenatedValues(concatResult)
+
 			for(sr: splitResult1){
 				System.out.print(sr.first.toString + " => ")
 				System.out.print(sr.second.toString + " => " )
@@ -151,8 +154,20 @@ class MCDC_Module {
 				System.out.println(nc.third.toString )
 				System.out.println
 		}
-	
 		
+		/*val splitResult11 = mcdcStatement.mergeCoverageResults(splitResult1)
+		System.out.println
+		System.out.println("####### MERGED RESULTS ####### ")
+		for(sr: splitResult11){
+				System.out.print(sr.first.toString + " => ")
+				System.out.print(sr.second.toString + " => " )
+				System.out.println(sr.third.toString )
+				System.out.println
+		}*/
+		
+		System.out.println
+		System.out.println("####### VECTORS ####### ")
+		optim.optimize(concatResult, mcdcStatement.mcdcvalues,notCoveredValues2)
 		//return result
 	}//enumerateAllModulePaths
 	

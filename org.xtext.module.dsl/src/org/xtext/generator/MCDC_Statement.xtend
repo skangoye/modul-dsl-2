@@ -26,6 +26,10 @@ class MCDC_Statement {
 	val listOfBooleanExpression = new ArrayList<EXPRESSION>
 	val listOfMcdcValues = new ArrayList<List<String>>
 	
+	def mcdcvalues() {
+		return listOfMcdcValues
+	}
+	
 	def mcdcErrorStatement(ERROR_STATEMENT statement){
 		return null
 	}
@@ -502,6 +506,7 @@ class MCDC_Statement {
 			var i = 0
 			val size = indexOfvariables.size
 			do{
+				
 				val varLeftIndex = indexOfvariables.get(i).first
 				val varRigthIndex = indexOfvariables.get(i).second
 				
@@ -871,6 +876,39 @@ class MCDC_Statement {
 	
 	}//addToTestPool
 	
+	/**
+	 * merge coverage results according to the following rule:
+	 * Two subIdentifierw having the same prefix are merged (e.g. '2F' and '2T')
+	 */
+	def mergeCoverageResults(List<Triplet< List<String>, Set<String>, List<String>>> listToMerge){
+		
+		//val mergedList = 
+		
+		var i = 0
+		do{
+			
+			val triplet = listToMerge.get(i)
+			val ident = triplet.third.extractIdentifier
+			
+			if(ident != ""){
+				
+				val find = listToMerge.findFirst[ (it != triplet) && (it.third.extractIdentifier == ident) ]
+			
+				if(find != null){
+					triplet.second.addAll(find.second)
+					triplet.third.set(0, ident)
+					listToMerge.remove(find)	
+				}
+				else{
+					triplet.third.set(0, ident)	
+				}
+				
+			}//if
+			
+		} while( (i=i+1) < listToMerge.size )
+		
+		return listToMerge
+	}
 	
 	/**
 	 * 
