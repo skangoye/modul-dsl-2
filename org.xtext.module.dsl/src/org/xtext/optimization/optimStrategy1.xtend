@@ -14,8 +14,11 @@ class optimStrategy1 {
 		val testsRepr  = decompositionOfTests(testsPool)
 		val vectorsList = vectorReprOfTests(coverageMatrix, testsRepr)
 		vectorsList.checkVectorsConsistency
+		val reducedTests = vectorsList.testSuiteReduction
 		System.out.println("Basis: "+ vectorBasis.toString )
 		System.out.println("Here, I am: " + vectorsList.toString)
+		System.out.println("Reduced suite: " + reducedTests.toString)
+	
 	}//optimize
 	
 	def private makeCoverageMatrix(List<List<String>> listOfMcdcValues, List<Triplet<List<String>,List<String>, List<String>>> listOfNotCoveredValues){
@@ -149,17 +152,18 @@ class optimStrategy1 {
 		return vector
 	}//getVector
 	
-	def testSuiteReduction(List<String> vectorsList){
+	def private testSuiteReduction(List<String> vectorsList){
 		
 		//
-		val reducedTestsSuit = new ArrayList<String>
-		
+		val reducedTestsSuite = new ArrayList<String>
+		val vectorSize = vectorsList.get(0).length
+		val nullVector = nullVector(vectorSize)
+		val fullVector = fullVector(vectorSize)
 		
 		//initialize contribution values
 		val size = vectorsList.size
 		var contribution = 0
 		var index = -1
-		val nullVector = nullVector(size)
 		
 		var cpt = 0
 		do{
@@ -176,16 +180,94 @@ class optimStrategy1 {
 		//At this point, the higher contribution value is 'contribution' and the index of the vector is 'index'
 		
 		val firstVector = vectorsList.get(index)
-		reducedTestsSuit.add(firstVector)
+		reducedTestsSuite.add(firstVector)
+		vectorsList.remove(index)
+		
+		var referenceVector = firstVector
+
+		while (referenceVector == fullVector) {
+			
+			var mostContribVectorSoFar = vectorsList.get(0) //
+			contribution = 0
+			
+			for(currVector : vectorsList){
+				
+				val tmpContrib = contribution(referenceVector, currVector)
+				
+				if(tmpContrib == 0){
+					//todo: remove this vector, as it's useless w.r.t to the chosen one
+				}
+				else{
+					if(tmpContrib > contribution){
+						contribution = tmpContrib
+						mostContribVectorSoFar = currVector 
+					}
+					else{
+						if((tmpContrib == contribution) && (contribution(nullVector, currVector) < contribution(nullVector, mostContribVectorSoFar)) ){
+							contribution = tmpContrib
+							mostContribVectorSoFar = currVector
+						}
+					}
+				}
+				
+			}//for
+			
+			//add the most contributed vector to the reduced test suite pool
+			reducedTestsSuite.add(mostContribVectorSoFar)
+			
+			//
+			referenceVector = referenceVector.strOR(mostContribVectorSoFar)
+			
+			//remove mostContribVectorSoFar as it can no longer contribute
+			vectorsList.remove(mostContribVectorSoFar)
+		
+		}//while
 	
+		return reducedTestsSuite
+	}//
 	
-	}//testSuiteReduction
+	def private strOR(String vector1, String vector2) {
+		
+		val result = new ArrayList<String>
+		
+		val array1 = vector1.toStringArray
+		val array2 = vector2.toStringArray
+		
+		if(array1.size != array2.size){
+			throw new Exception("Vector size mismatch")
+		}
+		
+		var size = array1.size
+		
+		var i = 0
+		do{
+			if( (array1.get(i).parseInt + array2.get(i).parseInt) > 0 ){
+				result.add("1")
+			}
+			else{
+				result.add("0")
+			}
+		} while( (i=i+1) < size)
+		
+		return result.arrayToString
+	}//strOR
+	
+	//testSuiteReduction
 	
 	def private nullVector(int i) {
 		var vector = ""
 		var cpt = 0
 		do{
 			vector = vector + "0"
+		} while( (cpt=cpt+1) < i)
+		return vector
+	}
+	
+	def private fullVector(int i) {
+		var vector = ""
+		var cpt = 0
+		do{
+			vector = vector + "1"
 		} while( (cpt=cpt+1) < i)
 		return vector
 	}
