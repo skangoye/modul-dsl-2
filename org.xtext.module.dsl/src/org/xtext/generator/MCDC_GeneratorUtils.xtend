@@ -540,43 +540,37 @@ class MCDC_GeneratorUtils {
 	 		}
 	 		
 	 		ADD: {
-	 			val toAdd = "(" + renameVarInBoolExpression(expression.left, useList, renamedList) + "+" + 
+	 			"(" + renameVarInBoolExpression(expression.left, useList, renamedList) + "+" + 
 	 			renameVarInBoolExpression(expression.right, useList, renamedList) + ")"
-	 			renamedList.add(toAdd)
+	 			//renamedList.add(toAdd)
 	 		}
 	 		
 	 		SUB: {
-	 			val toAdd = "(" + renameVarInBoolExpression(expression.left, useList, renamedList) + "-" + 
+	 			 "(" + renameVarInBoolExpression(expression.left, useList, renamedList) + "-" + 
 	 			renameVarInBoolExpression(expression.right, useList, renamedList) + ")"
-	 			renamedList.add(toAdd)
+	 			//renamedList.add(toAdd)
 	 		}
 	 		
 	 		MULT: {
-	 			val toAdd = "(" + renameVarInBoolExpression(expression.left, useList, renamedList) + "*" + 
+	 			"(" + renameVarInBoolExpression(expression.left, useList, renamedList) + "*" + 
 	 			renameVarInBoolExpression(expression.right, useList, renamedList) + ")"
-	 			renamedList.add(toAdd)
+	 			//renamedList.add(toAdd)
 	 		}
 	 		
 	 		DIV: {
-	 			val toAdd = "(" + renameVarInBoolExpression(expression.left, useList, renamedList) + "/" + 
+	 			"(" + renameVarInBoolExpression(expression.left, useList, renamedList) + "/" + 
 	 			renameVarInBoolExpression(expression.right, useList, renamedList) + ")"
-	 			renamedList.add(toAdd)
+	 			//renamedList.add(toAdd)
 	 		}
 	 		
 	 		VarExpRef: {
-	 			val name = expression.vref.name
-	 			useList.forEach[ 
-	 				use | if(use.first == name){
-		 					 val value = use.second.intValue
-		 					 if(value != -1){
-		 					 	renamedList.add(name + value)
-		 					 }
-		 					 else{
-		 					 	renamedList.add(name)
-		 					 }
-	 					  }
-	 			]
-	 			
+	 			val type = expression.vref.type.type
+	 			if(type == "bool"){
+	 				renamedList.add(getNewName(useList, expression.vref.name))
+	 			}
+	 			else{
+	 				getNewName(useList, expression.vref.name)
+	 			}	
 	 		}
 	 		
 	 		intConstant: expression.value.toString
@@ -589,6 +583,21 @@ class MCDC_GeneratorUtils {
 	 	}
 	 
 	 }
+	 
+	 def static getNewName(List<Couple<String,Integer>> useList, String name){
+	 	for (use : useList) {
+			if(use.first == name){
+				 val value = use.second.intValue
+				 if(value != -1){
+				 	  return (name + value)
+				 }
+				 else{
+				 	return name
+				 }
+			 }
+	 	}
+	 }
+	 
 	 
 	  /**
 	 * Checks whether two given strings form an independent pair

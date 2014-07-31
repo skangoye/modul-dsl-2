@@ -255,20 +255,25 @@ class MCDC_Module {
 					useList.initUseList(varInExpression) //varInExpression may be null
 					useList.updateUseList(defList)
 					
+					val assignVar = triplet.first.get(0)
+					
 					//replace use variables by theirs new names
 					if(useList.size != 0){
 						val expression = mcdcStatement.listOfBooleanExpression.get(identifier.parseInt)
 						val renamedList = new ArrayList<String>
 						renameVarInBoolExpression(expression, useList, renamedList)
 						
-						System.out.println
-						System.out.println("Renamed list: " + renamedList.toString)  
-						System.out.println
+						System.out.println ("uselist")
+						for(couple: useList){
+							System.out.println("( " + couple.first + ", " + couple.second + " )") 
+						}
+		
 						
 						triplet.setFirst(renamedList)//
+						triplet.first.add(0, assignVar)//replace the assignment variable in its position
 					}
 					
-					val assignVar = triplet.first.get(0)
+					//val assignVar = triplet.first.get(0)
 					if(assignVar != "*"){
 						val defCouple = defList.updateDefList(assignVar)
 						//replace the assignVar by a new name (i.e 'assignVar + index')
