@@ -3,17 +3,20 @@ package org.xtext.generator;
 import com.google.common.base.Objects;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.xtext.xbase.lib.Exceptions;
 import org.eclipse.xtext.xbase.lib.Functions.Function0;
+import org.eclipse.xtext.xbase.lib.IterableExtensions;
+import org.eclipse.xtext.xbase.lib.Procedures.Procedure1;
 import org.xtext.generator.MCDC_GeneratorUtils;
 import org.xtext.generator.MCDC_Statement;
+import org.xtext.helper.Couple;
 import org.xtext.helper.Triplet;
 import org.xtext.moduleDsl.ASSIGN_STATEMENT;
 import org.xtext.moduleDsl.AbstractVAR_DECL;
 import org.xtext.moduleDsl.BODY;
 import org.xtext.moduleDsl.ERROR_STATEMENT;
+import org.xtext.moduleDsl.EXPRESSION;
 import org.xtext.moduleDsl.IF_STATEMENT;
 import org.xtext.moduleDsl.LOOP_STATEMENT;
 import org.xtext.moduleDsl.MODULE_DECL;
@@ -95,7 +98,7 @@ public class MCDC_Module {
     String _plus = ("Size is: " + Integer.valueOf(_size));
     System.out.println(_plus);
     final ArrayList<List<Triplet<List<String>,List<String>,List<String>>>> result2 = MCDC_GeneratorUtils.copyListOfList(result);
-    MCDC_GeneratorUtils.assignVariableIdentifier(result2);
+    this.staticSingleAssignment(result2);
     System.out.println("####### MODULES PATHS #######");
     for (final List<Triplet<List<String>,List<String>,List<String>>> r : result2) {
       {
@@ -119,156 +122,6 @@ public class MCDC_Module {
         System.out.println();
       }
     }
-    System.out.println();
-    System.out.println("####### TEST SUITES #######");
-    final ArrayList<Triplet<List<String>,List<String>,List<String>>> concatResult = this.mcdcStatement.concatMcdcValues2(result2);
-    for (final Triplet<List<String>,List<String>,List<String>> cr : concatResult) {
-      {
-        List<String> _first = cr.getFirst();
-        String _string = _first.toString();
-        String _plus_1 = (_string + " => ");
-        System.out.print(_plus_1);
-        List<String> _second = cr.getSecond();
-        String _string_1 = _second.toString();
-        String _plus_2 = (_string_1 + " => ");
-        System.out.print(_plus_2);
-        List<String> _third = cr.getThird();
-        String _string_2 = _third.toString();
-        System.out.println(_string_2);
-        System.out.println();
-      }
-    }
-    System.out.println();
-    System.out.println("####### COVERAGE RESULT #######");
-    final ArrayList<Triplet<List<String>,Set<String>,List<String>>> splitResult = this.mcdcStatement.splitConcatenatedValues(concatResult);
-    for (final Triplet<List<String>,Set<String>,List<String>> sr : splitResult) {
-      {
-        List<String> _first = sr.getFirst();
-        String _string = _first.toString();
-        String _plus_1 = (_string + " => ");
-        System.out.print(_plus_1);
-        Set<String> _second = sr.getSecond();
-        String _string_1 = _second.toString();
-        String _plus_2 = (_string_1 + " => ");
-        System.out.print(_plus_2);
-        List<String> _third = sr.getThird();
-        String _string_2 = _third.toString();
-        System.out.println(_string_2);
-        System.out.println();
-      }
-    }
-    final ArrayList<Triplet<List<String>,List<String>,List<String>>> notCoveredValues = this.mcdcStatement.notCoveredValues(splitResult);
-    System.out.println();
-    System.out.println("####### NOT COVERED ####### ");
-    for (final Triplet<List<String>,List<String>,List<String>> nc : notCoveredValues) {
-      {
-        List<String> _first = nc.getFirst();
-        String _string = _first.toString();
-        String _plus_1 = (_string + " => ");
-        System.out.print(_plus_1);
-        List<String> _second = nc.getSecond();
-        String _string_1 = _second.toString();
-        String _plus_2 = (_string_1 + " => ");
-        System.out.print(_plus_2);
-        List<String> _third = nc.getThird();
-        String _string_2 = _third.toString();
-        System.out.println(_string_2);
-        System.out.println();
-      }
-    }
-    final ArrayList<List<Triplet<List<String>,List<String>,List<String>>>> listOfEquations = this.mcdcStatement.buildEquations(notCoveredValues, result2);
-    System.out.println();
-    System.out.println("####### EQUATIONS ####### ");
-    for (final List<Triplet<List<String>,List<String>,List<String>>> eq : listOfEquations) {
-      {
-        System.out.println("{");
-        for (final Triplet<List<String>,List<String>,List<String>> rr : eq) {
-          {
-            List<String> _first = rr.getFirst();
-            String _string = _first.toString();
-            String _plus_1 = (_string + " => ");
-            System.out.print(_plus_1);
-            List<String> _second = rr.getSecond();
-            String _string_1 = _second.toString();
-            String _plus_2 = (_string_1 + " => ");
-            System.out.print(_plus_2);
-            List<String> _third = rr.getThird();
-            String _string_2 = _third.toString();
-            System.out.println(_string_2);
-          }
-        }
-        System.out.println("}");
-        System.out.println();
-      }
-    }
-    System.out.println("####### Solving... #######");
-    for (final List<Triplet<List<String>,List<String>,List<String>>> equations : listOfEquations) {
-      this.mcdcStatement.translateAndSolveEquationsWithChoco(equations, concatResult);
-    }
-    System.out.println("####### NEW TEST SUITES... #######");
-    System.out.println();
-    for (final Triplet<List<String>,List<String>,List<String>> cr_1 : concatResult) {
-      List<String> _second = cr_1.getSecond();
-      int _size_1 = _second.size();
-      boolean _greaterThan = (_size_1 > 0);
-      if (_greaterThan) {
-        List<String> _first = cr_1.getFirst();
-        String _string = _first.toString();
-        String _plus_1 = (_string + " => ");
-        System.out.print(_plus_1);
-        List<String> _second_1 = cr_1.getSecond();
-        String _string_1 = _second_1.toString();
-        String _plus_2 = (_string_1 + " => ");
-        System.out.print(_plus_2);
-        List<String> _third = cr_1.getThird();
-        String _string_2 = _third.toString();
-        System.out.println(_string_2);
-        System.out.println();
-      }
-    }
-    System.out.println();
-    System.out.println();
-    System.out.println("####### COVERAGE RESULT #######");
-    final ArrayList<Triplet<List<String>,Set<String>,List<String>>> splitResult1 = this.mcdcStatement.splitConcatenatedValues(concatResult);
-    for (final Triplet<List<String>,Set<String>,List<String>> sr_1 : splitResult1) {
-      {
-        List<String> _first_1 = sr_1.getFirst();
-        String _string_3 = _first_1.toString();
-        String _plus_3 = (_string_3 + " => ");
-        System.out.print(_plus_3);
-        Set<String> _second_2 = sr_1.getSecond();
-        String _string_4 = _second_2.toString();
-        String _plus_4 = (_string_4 + " => ");
-        System.out.print(_plus_4);
-        List<String> _third_1 = sr_1.getThird();
-        String _string_5 = _third_1.toString();
-        System.out.println(_string_5);
-        System.out.println();
-      }
-    }
-    final ArrayList<Triplet<List<String>,List<String>,List<String>>> notCoveredValues2 = this.mcdcStatement.notCoveredValues(splitResult1);
-    System.out.println();
-    System.out.println("####### NOT COVERED ####### ");
-    for (final Triplet<List<String>,List<String>,List<String>> nc_1 : notCoveredValues2) {
-      {
-        List<String> _first_1 = nc_1.getFirst();
-        String _string_3 = _first_1.toString();
-        String _plus_3 = (_string_3 + " => ");
-        System.out.print(_plus_3);
-        List<String> _second_2 = nc_1.getSecond();
-        String _string_4 = _second_2.toString();
-        String _plus_4 = (_string_4 + " => ");
-        System.out.print(_plus_4);
-        List<String> _third_1 = nc_1.getThird();
-        String _string_5 = _third_1.toString();
-        System.out.println(_string_5);
-        System.out.println();
-      }
-    }
-    System.out.println();
-    System.out.println("####### VECTORS ####### ");
-    ArrayList<List<String>> _mcdcvalues = this.mcdcStatement.mcdcvalues();
-    this.optim.optimize(concatResult, _mcdcvalues, notCoveredValues2);
   }
   
   private List<List<Triplet<List<String>,List<String>,List<String>>>> tripletToListOfList(final Triplet<List<String>,List<String>,List<String>> triplet) {
@@ -313,5 +166,137 @@ public class MCDC_Module {
     } catch (Throwable _e) {
       throw Exceptions.sneakyThrow(_e);
     }
+  }
+  
+  public void staticSingleAssignment(final List<List<Triplet<List<String>,List<String>,List<String>>>> listOfList) {
+    for (final List<Triplet<List<String>,List<String>,List<String>>> list : listOfList) {
+      {
+        ArrayList<Couple<String,Integer>> _arrayList = new ArrayList<Couple<String,Integer>>();
+        final ArrayList<Couple<String,Integer>> defList = _arrayList;
+        for (final Triplet<List<String>,List<String>,List<String>> triplet : list) {
+          {
+            ArrayList<Couple<String,Integer>> _arrayList_1 = new ArrayList<Couple<String,Integer>>();
+            final ArrayList<Couple<String,Integer>> useList = _arrayList_1;
+            List<String> _third = triplet.getThird();
+            final String identifier = MCDC_GeneratorUtils.extractIdentifier(_third);
+            List<String> _third_1 = triplet.getThird();
+            final String identifierIndex = MCDC_GeneratorUtils.extractIdentIndex(_third_1);
+            boolean _equals = Objects.equal(identifierIndex, "N");
+            if (_equals) {
+              int _parseInt = MCDC_GeneratorUtils.parseInt(identifier);
+              final List<String> varInExpression = this.mcdcStatement.listOfVarInNonBoolExpression.get(_parseInt);
+              this.initUseList(useList, varInExpression);
+              this.updateUseList(useList, defList);
+              int _size = useList.size();
+              boolean _notEquals = (_size != 0);
+              if (_notEquals) {
+                int _parseInt_1 = MCDC_GeneratorUtils.parseInt(identifier);
+                final EXPRESSION expression = this.mcdcStatement.listOfNonBooleanExpression.get(_parseInt_1);
+                ArrayList<String> _arrayList_2 = new ArrayList<String>();
+                final ArrayList<String> renamedList = _arrayList_2;
+                MCDC_GeneratorUtils.renameVarInBoolExpression(expression, useList, renamedList);
+                System.out.println();
+                String _string = renamedList.toString();
+                String _plus = ("Renamed list: " + _string);
+                System.out.println(_plus);
+                System.out.println();
+                triplet.setSecond(renamedList);
+              }
+              List<String> _first = triplet.getFirst();
+              final String assignVar = _first.get(0);
+              boolean _notEquals_1 = (!Objects.equal(assignVar, "*"));
+              if (_notEquals_1) {
+                final Couple<String,Integer> defCouple = this.updateDefList(defList, assignVar);
+                List<String> _first_1 = triplet.getFirst();
+                String _first_2 = defCouple.getFirst();
+                Integer _second = defCouple.getSecond();
+                String _plus_1 = (_first_2 + _second);
+                _first_1.set(0, _plus_1);
+              }
+            } else {
+              int _parseInt_2 = MCDC_GeneratorUtils.parseInt(identifier);
+              final List<String> varInExpression_1 = this.mcdcStatement.listOfVarInBoolExpression.get(_parseInt_2);
+              this.initUseList(useList, varInExpression_1);
+              this.updateUseList(useList, defList);
+              int _size_1 = useList.size();
+              boolean _notEquals_2 = (_size_1 != 0);
+              if (_notEquals_2) {
+                int _parseInt_3 = MCDC_GeneratorUtils.parseInt(identifier);
+                final EXPRESSION expression_1 = this.mcdcStatement.listOfBooleanExpression.get(_parseInt_3);
+                ArrayList<String> _arrayList_3 = new ArrayList<String>();
+                final ArrayList<String> renamedList_1 = _arrayList_3;
+                MCDC_GeneratorUtils.renameVarInBoolExpression(expression_1, useList, renamedList_1);
+                System.out.println();
+                String _string_1 = renamedList_1.toString();
+                String _plus_2 = ("Renamed list: " + _string_1);
+                System.out.println(_plus_2);
+                System.out.println();
+                triplet.setFirst(renamedList_1);
+              }
+              List<String> _first_3 = triplet.getFirst();
+              final String assignVar_1 = _first_3.get(0);
+              boolean _notEquals_3 = (!Objects.equal(assignVar_1, "*"));
+              if (_notEquals_3) {
+                final Couple<String,Integer> defCouple_1 = this.updateDefList(defList, assignVar_1);
+                List<String> _first_4 = triplet.getFirst();
+                String _first_5 = defCouple_1.getFirst();
+                Integer _second_1 = defCouple_1.getSecond();
+                String _plus_3 = (_first_5 + _second_1);
+                _first_4.set(0, _plus_3);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  public void initUseList(final List<Couple<String,Integer>> useList, final List<String> list) {
+    final Procedure1<String> _function = new Procedure1<String>() {
+        public void apply(final String elem) {
+          int _minus = (-1);
+          Couple<String,Integer> _couple = new Couple<String,Integer>(elem, Integer.valueOf(_minus));
+          useList.add(_couple);
+        }
+      };
+    IterableExtensions.<String>forEach(list, _function);
+  }
+  
+  public void updateUseList(final List<Couple<String,Integer>> useList, final List<Couple<String,Integer>> previousDefList) {
+    final Procedure1<Couple<String,Integer>> _function = new Procedure1<Couple<String,Integer>>() {
+        public void apply(final Couple<String,Integer> use) {
+          final Procedure1<Couple<String,Integer>> _function = new Procedure1<Couple<String,Integer>>() {
+              public void apply(final Couple<String,Integer> previousDef) {
+                String _first = use.getFirst();
+                String _first_1 = previousDef.getFirst();
+                boolean _equals = Objects.equal(_first, _first_1);
+                if (_equals) {
+                  Integer _second = previousDef.getSecond();
+                  use.setSecond(_second);
+                }
+              }
+            };
+          IterableExtensions.<Couple<String,Integer>>forEach(previousDefList, _function);
+        }
+      };
+    IterableExtensions.<Couple<String,Integer>>forEach(useList, _function);
+  }
+  
+  public Couple<String,Integer> updateDefList(final List<Couple<String,Integer>> defList, final String assignVar) {
+    for (final Couple<String,Integer> defCouple : defList) {
+      String _first = defCouple.getFirst();
+      boolean _equals = Objects.equal(_first, assignVar);
+      if (_equals) {
+        final Integer value = defCouple.getSecond();
+        int _intValue = value.intValue();
+        int _plus = (_intValue + 1);
+        defCouple.setSecond(Integer.valueOf(_plus));
+        return defCouple;
+      }
+    }
+    Couple<String,Integer> _couple = new Couple<String,Integer>(assignVar, Integer.valueOf(0));
+    final Couple<String,Integer> newCouple = _couple;
+    defList.add(newCouple);
+    return newCouple;
   }
 }

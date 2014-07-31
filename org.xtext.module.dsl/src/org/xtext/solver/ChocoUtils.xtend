@@ -23,8 +23,8 @@ class ChocoUtils {
  			OR: pb.plus(exp.left.chocoIntegerExpression(pb,list), exp.right.chocoIntegerExpression(pb,list))
  			AND: pb.mult(exp.left.chocoIntegerExpression(pb,list), exp.right.chocoIntegerExpression(pb,list))
  			NOT: pb.minus(1, exp.exp.chocoIntegerExpression(pb,list))
- 			COMPARISON:getIntegerVar(list, relBoolRepr(exp.left) + exp.op + relBoolRepr(exp.right))
- 			EQUAL_DIFF: getIntegerVar(list, relBoolRepr(exp.left) + exp.op + relBoolRepr(exp.right))
+ 			COMPARISON:getIntegerVar(list, arithRepr(exp.left) + exp.op + arithRepr(exp.right))
+ 			EQUAL_DIFF: getIntegerVar(list, arithRepr(exp.left) + exp.op + arithRepr(exp.right))
  			VarExpRef: getIntegerVar(list, exp.vref.name)
  			boolConstant:getBooleanConstantVar(exp, pb)
  			//default:

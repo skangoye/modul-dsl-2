@@ -21,14 +21,23 @@ import static org.xtext.solver.ChocoUtils.*
 import static extension org.xtext.generator.MCDC_GeneratorUtils.*
 
 class MCDC_Statement {
+	
 	var identifier = -1
+	var notBoolIdentifier = -1
+	
 	val mcdcOfCond= new MCDC_Generator()
-	val listOfBooleanExpression = new ArrayList<EXPRESSION>
+	
+	val public listOfBooleanExpression = new ArrayList<EXPRESSION>
+	val public listOfNonBooleanExpression = new ArrayList<EXPRESSION>
 	val listOfMcdcValues = new ArrayList<List<String>>
+	val public listOfVarInBoolExpression = new ArrayList<List<String>>
+	val public listOfVarInNonBoolExpression = new ArrayList<List<String>>
 	
 	def mcdcvalues() {
 		return listOfMcdcValues
 	}
+	
+	//def 
 	
 	def mcdcErrorStatement(ERROR_STATEMENT statement){
 		return null
@@ -36,64 +45,90 @@ class MCDC_Statement {
 	
 	def mcdcVarStatement(AbstractVAR_DECL statement){
 		
-		val expression = (statement as TmpVAR_DECL).value
+		val tempVariable = (statement as TmpVAR_DECL) //temporary variable
+		val expression = tempVariable.value //expression defined by the variable
+		
+		val List<String> varInExpression = new ArrayList<String> //variables involved in the whole statement	
+		varInExpression.add(tempVariable.name)
+		
+		val List<String> subIdentifier = new ArrayList<String> //subIdentifer, used to track expressions (bool or not, if bool branches or not)
 			
 		if(statement.type.type != "bool"){
-			//val variableValue = stringReprOfExpression(expression)
-			//val List<String> stringRepOfVarVal = new ArrayList<String>
-			//stringRepOfVarVal.add(variableValue)
 			
-			//listOfMcdcValues.add(identifier, stringRepOfVarVal)
+			notBoolIdentifier = notBoolIdentifier + 1
+			listOfNonBooleanExpression.add(notBoolIdentifier, expression)
 			
-			return null //new Triplet(varInExpression, stringRepOfVarVal, subIdentifier)
+			val set = new TreeSet<String>
+			expression.allVarInExpression(set)
+			listOfVarInNonBoolExpression.add(notBoolIdentifier, set.toList)
+
+			subIdentifier.add(notBoolIdentifier + "N")
+		
+			val List<String> expressionValueToList = new ArrayList<String>
+			expressionValueToList.add(stringReprOfExpression(expression))
+			
+			return new Triplet(varInExpression, expressionValueToList, subIdentifier)
 		}
 		else{//statement is of type 'TmpVar_DECL' and 'bool'
 		
 			identifier = identifier + 1
 			listOfBooleanExpression.add(identifier, expression)
-			val List<String> subIdentifier = new ArrayList<String>
+			
+			val set = new TreeSet<String>
+			expression.allVarInExpression(set)
+			listOfVarInBoolExpression.add(identifier, set.toList)
+		
 			subIdentifier.add(identifier + "X")
 			
-			val List<String> varInExpression = new ArrayList<String>			
-			varInExpression.add((statement as TmpVAR_DECL).name)
-			varInExpression(expression, varInExpression)
+			booleanVarInExpression(expression, varInExpression)
 			
 			val mcdcValues = mcdcOfCond.mcdcOfBooleanExpression(expression).reduceList
-			
 			
 			listOfMcdcValues.add(identifier, mcdcValues)
 			
 			return new Triplet(varInExpression, mcdcValues, subIdentifier)
 		}
-	}
+	}//mcdcVarStatement
 	
 	def mcdcAssignStatement(ASSIGN_STATEMENT statement){
+		
 		val assign = (statement as ASSIGN_STATEMENT)
-		val booleanExpression = assign.right
+		val expression = assign.right
 		val variable = assign.left.variable
+		
+		val List<String> varInExpression = new ArrayList<String>
+		varInExpression.add(variable.name)
+			
+		val List<String> subIdentifier = new ArrayList<String>
 		
 		if(variable.type.type != "bool"){
 			
-			//val variableValue = stringReprOfExpression(booleanExpression)
-			//val List<String> stringRepOfVarVal = new ArrayList<String>
-			//stringRepOfVarVal.add(variableValue)
+			notBoolIdentifier = notBoolIdentifier + 1
+			listOfNonBooleanExpression.add(notBoolIdentifier, expression)
 			
-			//listOfMcdcValues.add(identifier, stringRepOfVarVal)
+			val set = new TreeSet<String>
+			expression.allVarInExpression(set)
+			listOfVarInNonBoolExpression.add(notBoolIdentifier, set.toList)
 			
-			return null//new Triplet(varInExpression, stringRepOfVarVal, subIdentifier)
+			subIdentifier.add(notBoolIdentifier + "N")
+			
+			val List<String> expressionValueToList = new ArrayList<String>
+			expressionValueToList.add(stringReprOfExpression(expression))
+			
+			return new Triplet(varInExpression, expressionValueToList, subIdentifier)
 		}
 		else{
 			identifier = identifier + 1
-			listOfBooleanExpression.add(identifier, booleanExpression)
+			listOfBooleanExpression.add(identifier, expression)
+		
+			val set = new TreeSet<String>
+			expression.allVarInExpression(set)
+			listOfVarInBoolExpression.add(identifier, set.toList)
 			
-			val List<String> varInExpression = new ArrayList<String>
-			varInExpression.add(variable.name)
-			
-			val List<String> subIdentifier = new ArrayList<String>
 			subIdentifier.add(identifier + "X")
-			varInExpression(booleanExpression, varInExpression)
+			booleanVarInExpression(expression, varInExpression)
 			
-			val mcdcValues = mcdcOfCond.mcdcOfBooleanExpression(booleanExpression).reduceList
+			val mcdcValues = mcdcOfCond.mcdcOfBooleanExpression(expression).reduceList
 			
 			listOfMcdcValues.add(identifier, mcdcValues)
 			
@@ -110,9 +145,13 @@ class MCDC_Statement {
 		listOfBooleanExpression.add(identifier, ifBooleanExpression)
 		listOfMcdcValues.add(identifier, mcdcValues.reduceList)
 		
+		val set = new TreeSet<String>
+		ifBooleanExpression.allVarInExpression(set)
+		listOfVarInBoolExpression.add(identifier, set.toList)
+			
 		val List<String> varInExpression = new ArrayList<String>
 		varInExpression.add("*")
-		varInExpression(ifBooleanExpression, varInExpression)
+		booleanVarInExpression(ifBooleanExpression, varInExpression)
 				
 		val mcdcTrueValues =  (mcdcValues.filter[ it.second == "T"].toList).reduceList
 		val mcdcFalseValues = (mcdcValues.filter[ it.second == "F"].toList).reduceList
@@ -239,9 +278,13 @@ class MCDC_Statement {
 						listOfBooleanExpression.add(identifier, ifBooleanExpression)
 						listOfMcdcValues.add(identifier, mcdcValues.reduceList)
 						
+						val set = new TreeSet<String>
+						ifBooleanExpression.allVarInExpression(set)
+						listOfVarInBoolExpression.add(identifier, set.toList)
+						
 						val List<String> varInExpression = new ArrayList<String>
 						varInExpression.add("*")
-						varInExpression(ifBooleanExpression, varInExpression)
+						booleanVarInExpression(ifBooleanExpression, varInExpression)
 						
 						val mcdcTrueValues = (mcdcValues.filter[ it.second == "T"].toList).reduceList
 						val mcdcFalseValues = (mcdcValues.filter[ it.second == "F"].toList).reduceList

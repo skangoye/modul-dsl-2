@@ -11,6 +11,7 @@ import org.xtext.moduleDsl.ERROR_STATEMENT
 import org.xtext.moduleDsl.LOOP_STATEMENT
 import static extension org.xtext.generator.MCDC_GeneratorUtils.*
 import org.xtext.optimization.optimStrategy1
+import org.xtext.helper.Couple
 
 class MCDC_Module {
 	
@@ -56,7 +57,7 @@ class MCDC_Module {
 		System.out.println("Size is: " + result.size)
 		
 		val result2 = result.copyListOfList
-		result2.assignVariableIdentifier
+		result2.staticSingleAssignment
 		
 		System.out.println("####### MODULES PATHS #######")
 		for(r: result2){
@@ -72,7 +73,7 @@ class MCDC_Module {
 			System.out.println
 		}
 		
- 		//concat mcdc values
+ 	/* 	//concat mcdc values
 		System.out.println
 		System.out.println("####### TEST SUITES #######")
 		val concatResult = mcdcStatement.concatMcdcValues2(result2)	
@@ -163,12 +164,12 @@ class MCDC_Module {
 				System.out.print(sr.second.toString + " => " )
 				System.out.println(sr.third.toString )
 				System.out.println
-		}*/
+		}
 		
 		System.out.println
 		System.out.println("####### VECTORS ####### ")
 		optim.optimize(concatResult, mcdcStatement.mcdcvalues,notCoveredValues2)
-		//return result
+		//return result */
 	}//enumerateAllModulePaths
 	
 	def private tripletToListOfList(Triplet <List<String>, List<String>, List<String> > triplet){
@@ -209,5 +210,102 @@ class MCDC_Module {
 		
 		return result
 	}//mergePaths
+	
+	def staticSingleAssignment(List<List<Triplet <List<String>, List<String>, List<String>>>> listOfList){
+		
+		for(list : listOfList){
+					
+			val defList = new ArrayList<Couple<String, Integer>>	
+			
+			for(triplet : list){ 
+				val useList = new ArrayList<Couple<String, Integer>>
+				//compute useList
+				
+				val identifier = triplet.third.extractIdentifier
+				val identifierIndex = triplet.third.extractIdentIndex
+				
+				if(identifierIndex == "N"){//non boolean expression
+					val varInExpression = mcdcStatement.listOfVarInNonBoolExpression.get(identifier.parseInt)
+					useList.initUseList(varInExpression) //
+					useList.updateUseList(defList)
+					
+					//replace use variables by theirs new names
+					if(useList.size != 0){
+						val expression = mcdcStatement.listOfNonBooleanExpression.get(identifier.parseInt)
+						val renamedList = new ArrayList<String>
+						renameVarInBoolExpression(expression, useList, renamedList)
+						
+						System.out.println
+						System.out.println("Renamed list: " + renamedList.toString)  
+						System.out.println
+						
+						triplet.setSecond(renamedList)//
+					}
+					
+					val assignVar = triplet.first.get(0)
+					if(assignVar != "*"){
+						val defCouple = defList.updateDefList(assignVar)
+						//replace the assignVar by a new name (i.e 'assignVar + index')
+						triplet.first.set(0, defCouple.first + defCouple.second)
+					}
+					
+				}
+				else{//identifierIndex == "F" or "T" or "X"
+					val varInExpression = mcdcStatement.listOfVarInBoolExpression.get(identifier.parseInt)
+					useList.initUseList(varInExpression) //varInExpression may be null
+					useList.updateUseList(defList)
+					
+					//replace use variables by theirs new names
+					if(useList.size != 0){
+						val expression = mcdcStatement.listOfBooleanExpression.get(identifier.parseInt)
+						val renamedList = new ArrayList<String>
+						renameVarInBoolExpression(expression, useList, renamedList)
+						
+						System.out.println
+						System.out.println("Renamed list: " + renamedList.toString)  
+						System.out.println
+						
+						triplet.setFirst(renamedList)//
+					}
+					
+					val assignVar = triplet.first.get(0)
+					if(assignVar != "*"){
+						val defCouple = defList.updateDefList(assignVar)
+						//replace the assignVar by a new name (i.e 'assignVar + index')
+						triplet.first.set(0, defCouple.first + defCouple.second)
+					}
+				}
+			}
+		}
+	}
+	
+	
+	def initUseList(List<Couple<String,Integer>> useList, List<String> list) {
+		list.forEach[ 
+			elem | useList.add( new Couple(elem, -1))
+		]
+	}
+	
+	def updateUseList(List<Couple<String,Integer>> useList, List<Couple<String,Integer>> previousDefList){
+		useList.forEach[ 
+			use | previousDefList.forEach[ 
+				previousDef | if(use.first == previousDef.first){ /*replace the second*/use.setSecond(previousDef.second) }
+			]
+		]
+	}
+	
+	def updateDefList(List<Couple<String,Integer>> defList, String assignVar) {
+		
+		for(defCouple: defList) { 
+			if (defCouple.first == assignVar){ 
+				val value = defCouple.second 
+				defCouple.setSecond(value.intValue + 1)
+				return defCouple
+			}
+		}
+		val newCouple = new Couple(assignVar, 0)
+		defList.add(newCouple)
+		return newCouple
+	}
 
 }//class

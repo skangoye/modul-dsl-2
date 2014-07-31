@@ -23,6 +23,7 @@ import org.xtext.moduleDsl.enumConstant
 import org.xtext.moduleDsl.boolConstant
 import org.xtext.moduleDsl.bitConstant
 import org.xtext.moduleDsl.hexConstant
+import java.util.Set
 
 class MCDC_GeneratorUtils {
 	
@@ -356,6 +357,19 @@ class MCDC_GeneratorUtils {
 	/**
 	 * 
 	 */
+	def static extractIdentIndex(List<String> ident) {
+		
+		if(ident.size != 1){
+			throw new Exception("Incorrect number of identifiers")
+		}
+		else{
+			return ident.get(0).getLastChar
+		}
+	}
+	
+	/**
+	 * 
+	 */
 	def private static setValues(List<String> list, String value, String setValue){
 		
 		var size = list.size
@@ -420,7 +434,7 @@ class MCDC_GeneratorUtils {
 	 		EQUAL_DIFF: stringReprOfExpression(expression.left) + "==" + stringReprOfExpression(expression.right)
 	 		NOT: "not" + stringReprOfExpression(expression.exp)
 	 		COMPARISON: stringReprOfExpression(expression.left) + expression.op + stringReprOfExpression(expression.right)
-	 		VarExpRef: expression.vref.name
+	 		VarExpRef: expression.vref.name 
 	 		ADD: stringReprOfExpression(expression.left) + "+" + stringReprOfExpression(expression.right)
 	  		SUB: stringReprOfExpression(expression.left) + "-" + stringReprOfExpression(expression.right)
 	  		MULT:stringReprOfExpression(expression.left) + "*" + stringReprOfExpression(expression.right)
@@ -432,23 +446,42 @@ class MCDC_GeneratorUtils {
 	  		boolConstant: expression.value.toString
 	  		bitConstant: expression.value.toString
 	  		hexConstant: expression.value.toString
-	 		
 	 	}
 	}
 	
+	
+	/**
+	 * 
+	 */
+	 def static void allVarInExpression(EXPRESSION expression, Set<String> set){
+	 	switch(expression){
+	 		AND: {allVarInExpression(expression.left, set) allVarInExpression(expression.right, set)}
+	 		OR: {allVarInExpression(expression.left, set) allVarInExpression(expression.right, set)} 
+	 		NOT: allVarInExpression(expression.exp, set)
+	 		EQUAL_DIFF: {allVarInExpression(expression.left, set) allVarInExpression(expression.right, set)}
+	 		COMPARISON: {allVarInExpression(expression.left, set) allVarInExpression(expression.right, set)}
+	 		ADD:{allVarInExpression(expression.left, set) allVarInExpression(expression.right, set)}
+	 		SUB: {allVarInExpression(expression.left, set) allVarInExpression(expression.right, set)}
+	 		MULT:{allVarInExpression(expression.left, set) allVarInExpression(expression.right, set)}
+	 		DIV: {allVarInExpression(expression.left, set) allVarInExpression(expression.right, set)} 
+	 		VarExpRef: set.add(expression.vref.name)
+	 	}//
+	 }
+	 
+	 
 	/**
 	 * Stores in a list, all the variables that are involved in an expression
 	 * Note: A relational condition (e.g (a<4)) is considered as a single variable
 	 * @param expression The expression in which we want to extract the variables
 	 * @param list All the variables will be stored in this list
 	 */
-	 def static void varInExpression(EXPRESSION expression, List<String> list){
+	 def static void booleanVarInExpression(EXPRESSION expression, List<String> list){
 	 	switch(expression){
-	 		AND: {varInExpression(expression.left, list) varInExpression(expression.right, list)}
-	 		OR: {varInExpression(expression.left, list) varInExpression(expression.right, list)}
-	 		EQUAL_DIFF: list.add(relBoolRepr(expression.left) + expression.op + relBoolRepr(expression.right)) 
-	 		NOT: varInExpression(expression.exp, list)
-	 		COMPARISON: list.add(relBoolRepr(expression.left) + expression.op + relBoolRepr(expression.right)) 
+	 		AND: {booleanVarInExpression(expression.left, list) booleanVarInExpression(expression.right, list)}
+	 		OR: {booleanVarInExpression(expression.left, list) booleanVarInExpression(expression.right, list)}
+	 		EQUAL_DIFF: list.add(arithRepr(expression.left) + expression.op + arithRepr(expression.right)) 
+	 		NOT: booleanVarInExpression(expression.exp, list)
+	 		COMPARISON: list.add(arithRepr(expression.left) + expression.op + arithRepr(expression.right)) 
 	 		VarExpRef: list.add(expression.vref.name)
 	 	}
 	 }
@@ -459,12 +492,12 @@ class MCDC_GeneratorUtils {
 	  * @param expression Expression to be represented in string form
 	  * @return A string that represents the relational condition
 	  */
-	  def static String relBoolRepr(EXPRESSION expression){
+	  def static String arithRepr(EXPRESSION expression){
 	  	switch(expression){
-	  		ADD: "(" + relBoolRepr(expression.left)+ "+" +  relBoolRepr(expression.right) +")"
-	  		SUB: "(" + relBoolRepr(expression.left)+ "-" +  relBoolRepr(expression.right) +")"
-	  		MULT:"(" + relBoolRepr(expression.left)+ "*" +  relBoolRepr(expression.right) +")"
-	  		DIV: "(" + relBoolRepr(expression.left)+ "/" +  relBoolRepr(expression.right) +")"
+	  		ADD: "(" + arithRepr(expression.left)+ "+" +  arithRepr(expression.right) +")"
+	  		SUB: "(" + arithRepr(expression.left)+ "-" +  arithRepr(expression.right) +")"
+	  		MULT:"(" + arithRepr(expression.left)+ "*" +  arithRepr(expression.right) +")"
+	  		DIV: "(" + arithRepr(expression.left)+ "/" +  arithRepr(expression.right) +")"
 	  		intConstant: expression.value.toString
 	  		realConstant:expression.value.toString
 	  		strConstant: expression.value.toString
@@ -472,11 +505,91 @@ class MCDC_GeneratorUtils {
 	  		boolConstant: expression.value.toString
 	  		bitConstant: expression.value.toString
 	  		hexConstant: expression.value.toString
-	  		VarExpRef: expression.vref.name.toString
+	  		VarExpRef:  expression.vref.name 
 	  		default:""
 	  	}
 	  }
-	  
+	 
+	  def static renameVarInBoolExpression(EXPRESSION expression, List<Couple<String,Integer>> useList, List<String> renamedList){
+	 	switch(expression){
+	 		
+	 		AND: {
+	 			renameVarInBoolExpression(expression.left, useList, renamedList) 
+	 			renameVarInBoolExpression(expression.right, useList, renamedList)
+	 		}
+	 		
+	 		OR: {
+	 			renameVarInBoolExpression(expression.left, useList, renamedList) 
+	 			renameVarInBoolExpression(expression.right, useList, renamedList)
+	 		}
+	 		
+	 		EQUAL_DIFF: { 
+	 			val toAdd = renameVarInBoolExpression(expression.left, useList, renamedList) + expression.op + 
+	 			renameVarInBoolExpression(expression.right, useList, renamedList)
+	 			renamedList.add(toAdd)
+	 		} 
+	 		
+	 		NOT: {
+	 				renameVarInBoolExpression(expression.exp, useList, renamedList)
+	 		}
+	 		
+	 		COMPARISON: {
+	 			val toAdd = renameVarInBoolExpression(expression.left, useList, renamedList) + expression.op + 
+	 			renameVarInBoolExpression(expression.right, useList, renamedList)
+	 			renamedList.add(toAdd)
+	 		}
+	 		
+	 		ADD: {
+	 			val toAdd = "(" + renameVarInBoolExpression(expression.left, useList, renamedList) + "+" + 
+	 			renameVarInBoolExpression(expression.right, useList, renamedList) + ")"
+	 			renamedList.add(toAdd)
+	 		}
+	 		
+	 		SUB: {
+	 			val toAdd = "(" + renameVarInBoolExpression(expression.left, useList, renamedList) + "-" + 
+	 			renameVarInBoolExpression(expression.right, useList, renamedList) + ")"
+	 			renamedList.add(toAdd)
+	 		}
+	 		
+	 		MULT: {
+	 			val toAdd = "(" + renameVarInBoolExpression(expression.left, useList, renamedList) + "*" + 
+	 			renameVarInBoolExpression(expression.right, useList, renamedList) + ")"
+	 			renamedList.add(toAdd)
+	 		}
+	 		
+	 		DIV: {
+	 			val toAdd = "(" + renameVarInBoolExpression(expression.left, useList, renamedList) + "/" + 
+	 			renameVarInBoolExpression(expression.right, useList, renamedList) + ")"
+	 			renamedList.add(toAdd)
+	 		}
+	 		
+	 		VarExpRef: {
+	 			val name = expression.vref.name
+	 			useList.forEach[ 
+	 				use | if(use.first == name){
+		 					 val value = use.second.intValue
+		 					 if(value != -1){
+		 					 	renamedList.add(name + value)
+		 					 }
+		 					 else{
+		 					 	renamedList.add(name)
+		 					 }
+	 					  }
+	 			]
+	 			
+	 		}
+	 		
+	 		intConstant: expression.value.toString
+	  		realConstant:expression.value.toString
+	  		strConstant: expression.value.toString
+	  		enumConstant: expression.value.toString
+	  		boolConstant: expression.value.toString
+	  		bitConstant: expression.value.toString
+	  		hexConstant: expression.value.toString
+	 	}
+	 
+	 }
+	 
 	  /**
 	 * Checks whether two given strings form an independent pair
 	 * @param str1 first string value

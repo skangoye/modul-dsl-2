@@ -185,7 +185,7 @@ class optimStrategy1 {
 		
 		var referenceVector = firstVector
 
-		while (referenceVector == fullVector) {
+		while (referenceVector != fullVector) {
 			
 			var mostContribVectorSoFar = vectorsList.get(0) //
 			contribution = 0
